@@ -1,6 +1,7 @@
 package router
 
 import (
+	_ "github.com/MGT06/e-wallet_backend/docs"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
@@ -23,6 +24,6 @@ func NewRouter(router *gin.Engine, pool *pgxpool.Pool, redis *redis.Client) *Rou
 }
 
 func (r *Router) Connect() {
+	r.router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	r.statusServer()
-	r.router.GET("/docs/v1/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 }
