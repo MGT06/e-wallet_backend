@@ -1,0 +1,15 @@
+basePath: /
+host: 192.168.0.186:5000
+info:
+  contact: {}
+  description: This is a sample send request use API.
+  title: Application E-Walet
+  version: "1.0"
+paths: {}
+securityDefinitions:
+  Bearer:
+    description: Bearer Token used as identity for accessing backend
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
