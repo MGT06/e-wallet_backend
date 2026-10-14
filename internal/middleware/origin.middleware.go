@@ -20,6 +20,7 @@ type ClientInfo struct {
 func (m *Middleware) Origin(c *gin.Context) {
 	client, _ := m.GetClientInfo(c)
 
+	fmt.Printf("\n\n")
 	log.Println("Request Accepted from : ")
 	fmt.Println("    IP         : ", client.IP)
 	fmt.Println("    Origin     : ", client.Origin)
