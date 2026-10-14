@@ -1,4 +1,4 @@
-FROM golang:1.27.1-alpine3.24 AS builder
+FROM golang:1.27-alpine AS builder
 
 WORKDIR /app
 
@@ -6,13 +6,14 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
+RUN CGO_ENABLED=0 go build -o main ./cmd/main.go
 
-RUN CGO_ENABLED=0 go build -o backend ./cmd/main.go
+FROM alpine:latest
 
-FROM alpine:3.24.2
+WORKDIR /srv
 
-WORKDIR /server
+COPY --from=builder /app/main /srv/server/main
 
-COPY --from=builder /app/backend /server/backend
+RUN mkdir -p /srv/server/public/img/
 
-CMD [ "/server/backend" ] 
+CMD [ "./server/main" ]
