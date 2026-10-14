@@ -16,5 +16,6 @@ func AuthRouter(router *gin.Engine, pool *pgxpool.Pool, redis *redis.Client) {
 	as := service.NewAuthService(ar, redis)
 	ac := controller.NewAuthContorller(as)
 
-	auth.POST("register", ac.RegisterAH)
+	auth.POST("register", ac.RegisterAC)
+	auth.POST("login", ac.LoginAC)
 }
