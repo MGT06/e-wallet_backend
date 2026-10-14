@@ -17,7 +17,7 @@ type Payload struct {
 	ExpiresIn int64
 }
 
-func (m *Middleware) GetPayload(c *gin.Context) (*Payload, error) {
+func GetPayload(c *gin.Context) (*Payload, error) {
 	bearer := c.GetHeader("Authorization")
 	if bearer == "" {
 		log.Printf("[GET PAYLOAD] Error: missing Authorization header from IP: %s\n", c.ClientIP())

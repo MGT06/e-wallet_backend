@@ -8,23 +8,20 @@ import (
 	msgerr "github.com/MGT06/e-wallet_backend/internal/message"
 	"github.com/MGT06/e-wallet_backend/internal/repository"
 	"github.com/MGT06/e-wallet_backend/pkg"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 )
 
 type AuthService struct {
 	conf  *pkg.ConfigHash
 	redis *redis.Client
-	db    *pgxpool.Pool
 	ar    *repository.AuthRepo
 }
 
-func NewAuthService(AuthRepo *repository.AuthRepo, redis *redis.Client, db *pgxpool.Pool) *AuthService {
+func NewAuthService(AuthRepo *repository.AuthRepo, redis *redis.Client) *AuthService {
 	return &AuthService{
 		ar:    AuthRepo,
 		conf:  pkg.NewConfigHash(),
 		redis: redis,
-		db:    db,
 	}
 }
 
@@ -42,7 +39,7 @@ func (as *AuthService) RegisterAS(c context.Context, body dto.RegisterRequest) (
 
 	body.Password = hashPassword
 
-	err = as.ar.RegisterAR(c, as.db, body)
+	err = as.ar.RegisterAR(c, body)
 	if err != nil {
 		return err
 	}

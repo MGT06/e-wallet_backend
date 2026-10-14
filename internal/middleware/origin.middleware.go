@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"slices"
 	"strings"
 
@@ -17,14 +18,23 @@ type ClientInfo struct {
 	Origin    string
 }
 
-func (m *Middleware) Origin(c *gin.Context) {
-	client, _ := m.GetClientInfo(c)
+func Origin(c *gin.Context) {
+	client, _ := GetClientInfo(c)
 
 	fmt.Printf("\n\n")
 	log.Println("Request Accepted from : ")
 	fmt.Println("    IP         : ", client.IP)
 	fmt.Println("    Origin     : ", client.Origin)
 	fmt.Printf("    User Agent : %s\n\n", client.UserAgent)
+
+	origins := os.Getenv("ALLOWED_ORIGINS")
+	var allowedOrigins []string
+	for _, o := range strings.Split(origins, ",") {
+		trimmed := strings.Trim(o, " \t\n\r\"'")
+		if trimmed != "" {
+			allowedOrigins = append(allowedOrigins, trimmed)
+		}
+	}
 
 	if client.Origin == "" {
 		c.Next()
@@ -35,7 +45,7 @@ func (m *Middleware) Origin(c *gin.Context) {
 		return
 	}
 
-	if !slices.Contains(m.OriginsAllowed, client.Origin) {
+	if !slices.Contains(allowedOrigins, client.Origin) {
 		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
 			"status":  false,
 			"message": fmt.Sprintf("request %s not allowed", client.Origin),
@@ -45,7 +55,7 @@ func (m *Middleware) Origin(c *gin.Context) {
 	c.Next()
 }
 
-func (m *Middleware) GetClientInfo(c *gin.Context) (*ClientInfo, error) {
+func GetClientInfo(c *gin.Context) (*ClientInfo, error) {
 	ip := c.ClientIP()
 	if ip == "" {
 		return nil, errors.New("unable to determine client IP")

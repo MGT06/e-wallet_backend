@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (m *Middleware) Cors(c *gin.Context) {
+func Cors(c *gin.Context) {
 	origin := c.GetHeader("Origin")
 	log.Printf("Origin : %s\n\n", origin)
 	c.Header("Access-Control-Allow-Origin", origin)

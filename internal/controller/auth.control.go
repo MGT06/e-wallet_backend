@@ -63,7 +63,7 @@ func (ac *AuthContorller) RegisterAH(c *gin.Context) {
 			return
 		}
 
-		c.JSON(http.StatusBadRequest, dto.ResponseError{StatusInternalServerError
+		c.JSON(http.StatusBadRequest, dto.ResponseError{
 			Success: false,
 			Message: err.Error(),
 		})
