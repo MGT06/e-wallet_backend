@@ -6,3 +6,7 @@ tmp/
 docker-compose.yml
 redis.conf
 deployment/
+FILE/
+pkg/
+db/ddl.sql
+.gitignore

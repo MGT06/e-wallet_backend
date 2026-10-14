@@ -3,31 +3,20 @@ package config
 import (
 	"log"
 	"os"
-	"strings"
 
 	"github.com/joho/godotenv"
 )
 
 type Env struct {
-	HOST            string
-	PORT            string
-	POSTGRES        *Postgres
-	ALLOWED_ORIGINS []string
-	REDIS           *Redis
+	HOST     string
+	PORT     string
+	POSTGRES *Postgres
+	REDIS    *Redis
 }
 
 func LoadEnv() *Env {
 	if err := godotenv.Load(); err != nil {
-		log.Fatalf("[ConfigEnv.LoadEnv] load : %v", err.Error())
-	}
-
-	origins := os.Getenv("ALLOWED_ORIGINS")
-	var allowedOrigins []string
-	for _, o := range strings.Split(origins, ",") {
-		trimmed := strings.Trim(o, " \t\n\r\"'")
-		if trimmed != "" {
-			allowedOrigins = append(allowedOrigins, trimmed)
-		}
+		log.Printf("[ConfigEnv.LoadEnv] load : %v", err.Error())
 	}
 
 	return &Env{
@@ -44,8 +33,7 @@ func LoadEnv() *Env {
 			HOST: os.Getenv("REDIS_HOST"),
 			PORT: os.Getenv("REDIS_PORT"),
 			USER: os.Getenv("REDIS_USER"),
-			PWD:  os.Getenv("REDIS_PASWORD"),
+			PWD:  os.Getenv("REDIS_PASSWORD"),
 		},
-		ALLOWED_ORIGINS: allowedOrigins,
 	}
 }
