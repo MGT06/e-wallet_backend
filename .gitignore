@@ -4,6 +4,5 @@
 .air.toml
 tmp/
 docker-compose.yml
-Dockerfile
 redis.conf
 deployment/
