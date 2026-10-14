@@ -1,0 +1,1 @@
+DROP payment_methods;
