@@ -40,7 +40,7 @@ func main() {
 	// gin.SetMode(gin.ReleaseMode)
 	server := gin.Default()
 
-	router.NewRouter(server, pool, redis).Connect()
+	router.NewRouter(server, pool, redis, conf.ALLOWED_ORIGINS).Connect()
 
 	server.Run(fmt.Sprintf("%s:%s", conf.HOST, conf.PORT))
 }
