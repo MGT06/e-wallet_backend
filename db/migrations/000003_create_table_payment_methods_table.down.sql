@@ -1,1 +1,1 @@
-DROP payment_methods;
+DROP TABLE payment_methods;
