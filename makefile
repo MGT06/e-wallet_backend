@@ -32,3 +32,6 @@ ps:
 
 logs:
 	docker logs -f e-walet-backend
+
+swag:
+	swag init -g cmd/main.go -o docs

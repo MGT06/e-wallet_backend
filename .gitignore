@@ -4,6 +4,9 @@
 .air.toml
 tmp/
 docker-compose.yml
-Dockerfile
 redis.conf
 deployment/
+FILE/
+pkg/
+db/ddl.sql
+.gitignore
