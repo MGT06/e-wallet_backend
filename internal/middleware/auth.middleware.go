@@ -12,8 +12,7 @@ import (
 )
 
 type Payload struct {
-	ID        int32
-	Role      string
+	ID        int64
 	ExpiresIn int64
 }
 
@@ -57,7 +56,6 @@ func GetPayload(c *gin.Context) (*Payload, error) {
 
 	return &Payload{
 		ID:        token.ID,
-		Role:      token.Role,
 		ExpiresIn: expiresInSec,
 	}, nil
 }
