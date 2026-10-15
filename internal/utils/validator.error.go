@@ -11,15 +11,17 @@ func ValidationError(errs validator.ValidationErrors) string {
 		field := fe.Field()
 		switch fe.Tag() {
 		case "required":
-			return fmt.Sprintf("Field %s wajib diisi.", field)
+			return fmt.Sprintf("field %s wajib diisi.", field)
 		case "email":
-			return fmt.Sprintf("Format email pada field %s tidak valid.", field)
+			return fmt.Sprintf("format %s tidak valid.", field)
+		case "numeric":
+			return fmt.Sprintf("field %s harus berupa angka.", field)
 		case "min":
-			return fmt.Sprintf("Field %s minimal harus memiliki %s karakter.", field, fe.Param())
+			return fmt.Sprintf("field %s minimal harus memiliki %s karakter.", field, fe.Param())
 		case "max":
-			return fmt.Sprintf("Field %s maksimal memiliki %s karakter.", field, fe.Param())
+			return fmt.Sprintf("ifeld %s maksimal memiliki %s karakter.", field, fe.Param())
 		default:
-			return fmt.Sprintf("Field %s tidak valid pada rule %s.", field, fe.Tag())
+			return fmt.Sprintf("field %s tidak valid pada rule %s.", field, fe.Tag())
 		}
 	}
 	return ""

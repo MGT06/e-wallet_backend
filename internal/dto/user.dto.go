@@ -17,8 +17,8 @@ type UserProfileResponse struct {
 type UserChangeProfileRequest struct {
 	Fullname *string               `form:"name" example:"Alma'ruf Hidayat" binding:"omitempty,min=3,max=100"`
 	ImageURL *multipart.FileHeader `form:"image" swaggerignore:"true" binding:"omitempty"`
-	Phone    *string               `form:"phone" example:"081973779380" binding:"omitempty,min=12,max=14"`
-	Email    *string               `form:"email" binding:"omitempty,email" example:"almarufhidayat99@gmail.com"`
+	Phone    *string               `form:"phone" example:"081973779380" binding:"omitempty,numeric,min=12,max=14"`
+	Email    *string               `form:"email" binding:"omitempty,email,max=20" example:"almarufhidayat99@gmail.com"`
 }
 
 type UserChangeProfileResponse struct {

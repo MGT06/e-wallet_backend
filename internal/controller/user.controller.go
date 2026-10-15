@@ -8,8 +8,10 @@ import (
 	"github.com/MGT06/e-wallet_backend/internal/dto"
 	msgerr "github.com/MGT06/e-wallet_backend/internal/message"
 	"github.com/MGT06/e-wallet_backend/internal/service"
+	"github.com/MGT06/e-wallet_backend/internal/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
 )
 
 type UserContorller struct {
@@ -175,6 +177,15 @@ func (uc *UserContorller) ChangeProfileUC(c *gin.Context) {
 	var body dto.UserChangeProfileRequest
 	if err := c.ShouldBindWith(&body, binding.FormMultipart); err != nil {
 		log.Printf("[UserContorller.ChangeProfileUC] Bind error: %s", err.Error())
+		found, isErr := errors.AsType[validator.ValidationErrors](err)
+		if isErr {
+			err := utils.ValidationError(found)
+			c.JSON(http.StatusBadRequest, dto.ResponseError{
+				Success: false,
+				Message: err,
+			})
+			return
+		}
 		c.JSON(http.StatusBadRequest, dto.ResponseError{
 			Success: false,
 			Message: "invalid request format",
