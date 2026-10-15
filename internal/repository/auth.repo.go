@@ -69,17 +69,8 @@ func (ar *AuthRepo) GetUserByEmail(c context.Context, body dto.LoginRequest) (*m
     `
 	var user models.Account
 	err := ar.db.QueryRow(c, query, body.Email).Scan(
-		&user.ID,
-		&user.Fullname,
-		&user.ImageURL,
-		&user.Phone,
-		&user.Email,
 		&user.Password,
-		&user.Pin,
-		&user.Balance,
 		&user.DeletedAt,
-		&user.CreatedAt,
-		&user.UpdatedAt,
 	)
 
 	if err != nil {
@@ -109,17 +100,12 @@ func (ar *AuthRepo) GetUserById(c context.Context, body dto.LoginRequest) (*mode
     `
 	var user models.Account
 	err := ar.db.QueryRow(c, query, body.Email).Scan(
-		&user.ID,
 		&user.Fullname,
 		&user.ImageURL,
 		&user.Phone,
 		&user.Email,
-		&user.Password,
 		&user.Pin,
 		&user.Balance,
-		&user.DeletedAt,
-		&user.CreatedAt,
-		&user.UpdatedAt,
 	)
 
 	if err != nil {
