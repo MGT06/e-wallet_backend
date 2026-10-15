@@ -30,8 +30,8 @@ const docTemplate = `{
                 "summary": "Log In",
                 "parameters": [
                     {
-                        "description": "Body data to access EventHub",
-                        "name": "data",
+                        "description": "Body data to access ewalet",
+                        "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -39,6 +39,37 @@ const docTemplate = `{
                         }
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/logout": {
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Log out for delete access user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Log out",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -71,7 +102,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "Body data new user",
-                        "name": "data",
+                        "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {

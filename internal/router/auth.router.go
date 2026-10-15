@@ -2,6 +2,7 @@ package router
 
 import (
 	"github.com/MGT06/e-wallet_backend/internal/controller"
+	"github.com/MGT06/e-wallet_backend/internal/middleware"
 	"github.com/MGT06/e-wallet_backend/internal/repository"
 	"github.com/MGT06/e-wallet_backend/internal/service"
 	"github.com/gin-gonic/gin"
@@ -18,4 +19,5 @@ func AuthRouter(router *gin.Engine, pool *pgxpool.Pool, redis *redis.Client) {
 
 	auth.POST("register", ac.RegisterAC)
 	auth.POST("login", ac.LoginAC)
+	auth.DELETE("logout", middleware.AuthMiddleware(redis), ac.LogoutAC)
 }
