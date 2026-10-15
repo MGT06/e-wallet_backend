@@ -30,12 +30,12 @@ func NewAuthContorller(as *service.AuthService) *AuthContorller {
 // @Accept			json
 // @Produce			json
 // @Router			/auth/register	[post]
-// @Param			data	body 		dto.RegisterRequest true "Body data new user"
+// @Param			body	body 		dto.RegisterRequest true "Body data new user"
 // @Success			200		{object}	dto.ResponseSuccess
 // @Failure			400		{object}	dto.ResponseError
 // @Failure			409		{object}	dto.ResponseError
 // @Failure			500		{object}	dto.ResponseError
-func (ac *AuthContorller) RegisterAH(c *gin.Context) {
+func (ac *AuthContorller) RegisterAC(c *gin.Context) {
 	var body dto.RegisterRequest
 	if err := c.ShouldBindWith(&body, binding.JSON); err != nil {
 		log.Printf("[AuthHandler.Register] ShouldBindWith: %v\n", err)
@@ -63,9 +63,9 @@ func (ac *AuthContorller) RegisterAH(c *gin.Context) {
 			return
 		}
 
-		c.JSON(http.StatusBadRequest, dto.ResponseError{
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
 			Success: false,
-			Message: err.Error(),
+			Message: "a system error has accurred",
 		})
 		return
 	}
@@ -73,5 +73,51 @@ func (ac *AuthContorller) RegisterAH(c *gin.Context) {
 	c.JSON(http.StatusCreated, dto.ResponseSuccess{
 		Success: true,
 		Message: "User registered successfully",
+	})
+}
+
+// Login
+//
+// @Summary			Log In
+// @Description		Log in for get full access
+// @Tags			Auth
+// @Accept			json
+// @Produce			json
+// @Router			/auth/login	[post]
+// @Param			body	body 		dto.LoginRequest true "Body data to access ewalet"
+// @Success			200		{object}	dto.ResponseSuccess
+// @Failure			400		{object}	dto.ResponseError
+func (ac *AuthContorller) LoginAC(c *gin.Context) {
+	var body dto.LoginRequest
+	if err := c.ShouldBindWith(&body, binding.JSON); err != nil {
+		log.Printf("[AuthContorller.LoginAC] Bind error: %v\n", err.Error())
+		c.JSON(http.StatusBadRequest, dto.ResponseError{
+			Success: false,
+			Message: "invalid request payload",
+		})
+		return
+	}
+
+	res, err := ac.as.LoginAS(c.Request.Context(), body)
+	if err != nil {
+		if errors.Is(err, msgerr.ErrEmailNotExist) {
+			c.JSON(http.StatusBadRequest, dto.ResponseError{
+				Success: false,
+				Message: err.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.ResponseSuccess{
+		Success: true,
+		Message: "User login successfully",
+		Data:    res,
 	})
 }

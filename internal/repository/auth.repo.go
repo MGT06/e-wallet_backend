@@ -7,6 +7,7 @@ import (
 
 	"github.com/MGT06/e-wallet_backend/internal/dto"
 	msgerr "github.com/MGT06/e-wallet_backend/internal/message"
+	"github.com/MGT06/e-wallet_backend/internal/models"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -47,4 +48,54 @@ func (ar *AuthRepo) RegisterAR(c context.Context, body dto.RegisterRequest) (err
 		return msgerr.ErrNoRowAffected
 	}
 	return nil
+}
+
+func (ar *AuthRepo) GetUserByEmail(c context.Context, body dto.LoginRequest) (*models.Account, error) {
+	query := `
+        SELECT
+            password,
+            deleted_at
+        FROM accounts
+        WHERE email = $1
+    `
+	var user models.Account
+	err := ar.db.QueryRow(c, query, body.Email).Scan(
+		&user.Password,
+		&user.DeletedAt,
+	)
+
+	if err != nil {
+		log.Printf("[AuthRepo.GetUserByEmail] QueryRow : %s", err)
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (ar *AuthRepo) GetUserById(c context.Context, body dto.LoginRequest) (*models.Account, error) {
+	query := `
+        SELECT 
+            fullname, 
+            image_url, 
+            phone, 
+            email, 
+            balance
+        FROM accounts
+        WHERE id = $1
+    `
+	var user models.Account
+	err := ar.db.QueryRow(c, query, body.Email).Scan(
+		&user.Fullname,
+		&user.ImageURL,
+		&user.Phone,
+		&user.Email,
+		&user.Balance,
+	)
+
+	if err != nil {
+		log.Printf("[AuthRepo.GetUserById] QueryRow : %s", err)
+		return nil, err
+	}
+
+	return &user, nil
 }
