@@ -61,10 +61,6 @@ func (as *AuthService) LoginAS(c context.Context, body dto.LoginRequest) (*dto.L
 		return nil, err
 	}
 
-	if user.DeletedAt != nil {
-		return nil, msgerr.ErrAccounDeleted
-	}
-
 	_, err = as.conf.Compare(body.Password, user.Password)
 	if err != nil {
 		log.Printf("[AuthService.LoginAS] Compare %s", err)
@@ -128,11 +124,10 @@ func (as *AuthService) ForgotPasswordAS(c context.Context, email string) (string
 		Email: emailUser,
 		OTP:   otp,
 	})
-	
+
 	if errors != nil {
 		return "", errors
 	}
-
 
 	if err := m.SendMail(email, html); err != nil {
 		return "", err

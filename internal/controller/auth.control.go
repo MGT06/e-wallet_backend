@@ -8,8 +8,10 @@ import (
 	"github.com/MGT06/e-wallet_backend/internal/dto"
 	msgerr "github.com/MGT06/e-wallet_backend/internal/message"
 	"github.com/MGT06/e-wallet_backend/internal/service"
+	"github.com/MGT06/e-wallet_backend/internal/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -40,6 +42,16 @@ func (ac *AuthContorller) RegisterAC(c *gin.Context) {
 	var body dto.RegisterRequest
 	if err := c.ShouldBindWith(&body, binding.JSON); err != nil {
 		log.Printf("[AuthHandler.Register] ShouldBindWith: %v\n", err)
+		found, isErr := errors.AsType[validator.ValidationErrors](err)
+		if isErr {
+			err := utils.ValidationError(found)
+			c.JSON(http.StatusBadRequest, dto.ResponseError{
+				Success: false,
+				Message: err,
+			})
+			return
+		}
+
 		c.JSON(http.StatusBadRequest, dto.ResponseError{
 			Success: false,
 			Message: "invalid request payload",
