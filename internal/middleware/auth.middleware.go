@@ -2,13 +2,17 @@ package middleware
 
 import (
 	"errors"
+	"fmt"
 	"log"
+	"net/http"
 	"strings"
-	"time"
 
+	"github.com/MGT06/e-wallet_backend/internal/dto"
+	msgerr "github.com/MGT06/e-wallet_backend/internal/message"
 	"github.com/MGT06/e-wallet_backend/pkg"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/redis/go-redis/v9"
 )
 
 type Payload struct {
@@ -16,46 +20,75 @@ type Payload struct {
 	ExpiresIn int64
 }
 
-func GetPayload(c *gin.Context) (*Payload, error) {
-	bearer := c.GetHeader("Authorization")
-	if bearer == "" {
-		log.Printf("[GET PAYLOAD] Error: missing Authorization header from IP: %s\n", c.ClientIP())
-		return nil, errors.New("Authorization header is required")
-	}
-
-	result := strings.Split(bearer, " ")
-	if len(result) != 2 {
-		log.Printf("[GET PAYLOAD] Error: malformed Authorization header length (%d parts)\n", len(result))
-		return nil, errors.New("Invalid authorization header format")
-	}
-
-	if result[0] != "Bearer" {
-		log.Printf("[GET PAYLOAD] Error: invalid scheme '%s', expected 'Bearer'\n", result[0])
-		return nil, errors.New("Authorization scheme must be Bearer")
-	}
-
-	var token pkg.JWTClaims
-	err := token.DecodeToken(result[1])
-	if err != nil {
-		if errors.Is(err, jwt.ErrTokenExpired) || errors.Is(err, jwt.ErrTokenInvalidIssuer) {
-			log.Printf("[GET PAYLOAD] Warning: token validation failed: %v\n", err)
-			return nil, errors.New("Token is invalid or expired")
+func AuthMiddleware(rdb *redis.Client) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		bearer := c.GetHeader("Authorization")
+		if bearer == "" {
+			log.Printf("[AuthMiddleware] GetHeader  Authorization : from IP: %s\n", c.ClientIP())
+			c.AbortWithStatusJSON(http.StatusUnauthorized, dto.ResponseError{
+				Success: false,
+				Message: "please login first",
+			})
+			return
 		}
 
-		log.Printf("[GET PAYLOAD] Critical Error: unexpected error while decoding token: %v\n", err)
-		return nil, errors.New("Internal server error")
-	}
-
-	var expiresInSec int64 = 0
-	if token.ExpiresAt != nil {
-		diff := time.Until(token.ExpiresAt.Time)
-		if diff > 0 {
-			expiresInSec = int64(diff.Seconds())
+		result := strings.Split(bearer, " ")
+		if len(result) != 2 {
+			log.Printf("[AuthMiddleware] Error: malformed Authorization header length (%d parts)\n", len(result))
+			c.AbortWithStatusJSON(http.StatusUnauthorized, dto.ResponseError{
+				Success: false,
+				Message: "Invalid authorization header format",
+			})
+			return
 		}
-	}
 
-	return &Payload{
-		ID:        token.ID,
-		ExpiresIn: expiresInSec,
-	}, nil
+		if result[0] != "Bearer" {
+			log.Printf("[AuthMiddleware] Error: invalid scheme '%s', expected 'Bearer'\n", result[0])
+			c.AbortWithStatusJSON(http.StatusUnauthorized, dto.ResponseError{
+				Success: false,
+				Message: "Authorization scheme must be Bearer",
+			})
+			return
+		}
+
+		var token pkg.JWTClaims
+		err := token.DecodeToken(result[1])
+		if err != nil {
+			log.Printf("[AuthMiddleware] DecodeToken : token validation failed: %v\n", err)
+			if errors.Is(err, jwt.ErrTokenExpired) || errors.Is(err, jwt.ErrTokenInvalidIssuer) {
+				c.AbortWithStatusJSON(http.StatusUnauthorized, dto.ResponseError{
+					Success: false,
+					Message: "Token is invalid or expired",
+				})
+				return
+			}
+			c.AbortWithStatusJSON(http.StatusInternalServerError, dto.ResponseError{
+				Success: false,
+				Message: "a system error has accurred",
+			})
+			return
+		}
+
+		key := fmt.Sprintf("ewallet:token:%d", token.ID)
+
+		_, err = rdb.Get(c, key).Result()
+		if err != nil {
+			if errors.Is(err, redis.Nil) {
+				log.Printf("[AuthMiddleware] Redis Get key %s : %s", key, err)
+				c.AbortWithStatusJSON(http.StatusUnauthorized, dto.ResponseError{
+					Success: false,
+					Message: msgerr.ErrTokenExpired.Error(),
+				})
+				return
+			}
+			c.AbortWithStatusJSON(http.StatusInternalServerError, dto.ResponseError{
+				Success: false,
+				Message: "a system error has accurred",
+			})
+			return
+		}
+
+		c.Set("ID", token.ID)
+		c.Next()
+	}
 }
