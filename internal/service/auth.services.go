@@ -78,7 +78,7 @@ func (as *AuthService) LoginAS(c context.Context, body dto.LoginRequest) (*dto.L
 	}
 
 	key := fmt.Sprintf("ewallet:token:%d", user.ID)
-	err = as.redis.Set(c, key, true, 60*time.Minute).Err()
+	err = as.redis.Set(c, key, user.ID, 60*time.Minute).Err()
 	if err != nil {
 		log.Printf("[AuthService.LoginAS] Redis Set %s", err)
 		return nil, err
@@ -92,7 +92,7 @@ func (as *AuthService) LoginAS(c context.Context, body dto.LoginRequest) (*dto.L
 func (as *AuthService) LogoutAS(c context.Context, userID int64) (err error) {
 	key := fmt.Sprintf("ewallet:token:%d", userID)
 
-	err = as.redis.Set(c, key, false, 60*time.Minute).Err()
+	err = as.redis.Del(c, key).Err()
 	if err != nil {
 		log.Printf("[AuthService.Logout] Gagal menghapus key Redis: %v", err)
 		return err
