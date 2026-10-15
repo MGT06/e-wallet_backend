@@ -78,3 +78,61 @@ func (uc *UserContorller) GetUserHeaderUC(c *gin.Context) {
 		Data:    user,
 	})
 }
+
+// User profile
+//
+// @Summary			User profile
+// @Description		Get user profile
+// @Tags			User
+// @Produce			json
+// @Security		Bearer
+// @Router			/user/profile	[get]
+// @Success			200		{object}	dto.ResponseSuccess
+// @Failure			400		{object}	dto.ResponseError
+// @Failure			500		{object}	dto.ResponseError
+func (uc *UserContorller) GetUserProfileUC(c *gin.Context) {
+	res, ok := c.Get("ID")
+	if !ok {
+		log.Printf("[UserContorller.GetUserProfileUC] Error get token from redis")
+		c.JSON(http.StatusBadRequest, dto.ResponseError{
+			Success: false,
+			Message: "please login first",
+		})
+		return
+	}
+
+	userID, ok := res.(int64)
+	if !ok {
+		log.Printf("[UserContorller.GetUserProfileUC] Error change to string")
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	log.Printf("User : %d", userID)
+
+	user, err := uc.us.GetUserProfileUS(c.Request.Context(), userID)
+	if err != nil {
+		if errors.Is(err, msgerr.ErrUserNotExist) {
+			c.JSON(http.StatusBadRequest, dto.ResponseError{
+				Success: false,
+				Message: err.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.ResponseSuccess{
+		Success: true,
+		Message: "get user profile success",
+		Data:    user,
+	})
+}
