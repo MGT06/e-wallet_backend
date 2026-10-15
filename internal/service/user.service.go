@@ -27,3 +27,16 @@ func (us *UserService) GetUserHeaderUS(c context.Context, userID int64) (*dto.Us
 		ImageURL: user.ImageURL,
 	}, nil
 }
+
+func (us *UserService) GetUserProfileUS(c context.Context, userID int64) (*dto.UserProfileResponse, error) {
+	user, err := us.ur.GetUserHeaderUR(c, userID)
+	if err != nil {
+		return nil, err
+	}
+	return &dto.UserProfileResponse{
+		Fullname: user.Fullname,
+		ImageURL: user.ImageURL,
+		Phone:    user.Phone,
+		Email:    user.Email,
+	}, nil
+}

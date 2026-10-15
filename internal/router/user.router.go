@@ -18,4 +18,5 @@ func UserRouter(router *gin.Engine, pool *pgxpool.Pool, redis *redis.Client) {
 	uc := controller.NewUserContorller(us)
 
 	user.GET("info", middleware.AuthMiddleware(redis), uc.GetUserHeaderUC)
+	user.GET("profile", middleware.AuthMiddleware(redis), uc.GetUserProfileUC)
 }
