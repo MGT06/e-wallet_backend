@@ -63,9 +63,9 @@ func (ac *AuthContorller) RegisterAC(c *gin.Context) {
 			return
 		}
 
-		c.JSON(http.StatusBadRequest, dto.ResponseError{
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
 			Success: false,
-			Message: err.Error(),
+			Message: "a system error has accurred",
 		})
 		return
 	}
@@ -87,27 +87,35 @@ func (ac *AuthContorller) RegisterAC(c *gin.Context) {
 // @Param			data	body dto.LoginRequest true "Body data to access EventHub"
 // @Success			200		{object}	dto.ResponseSuccess
 // @Failure			400		{object}	dto.ResponseError
-func (ac *AuthContorller) LoginAC(ctx *gin.Context) {
+func (ac *AuthContorller) LoginAC(c *gin.Context) {
 	var body dto.LoginRequest
-	if err := ctx.ShouldBindWith(&body, binding.JSON); err != nil {
+	if err := c.ShouldBindWith(&body, binding.JSON); err != nil {
 		log.Printf("[AuthContorller.LoginAC] Bind error: %v\n", err.Error())
-		ctx.JSON(http.StatusBadRequest, dto.ResponseError{
+		c.JSON(http.StatusBadRequest, dto.ResponseError{
 			Success: false,
 			Message: "invalid request payload",
 		})
 		return
 	}
 
-	res, err := ac.as.LoginAS(ctx.Request.Context(), body)
+	res, err := ac.as.LoginAS(c.Request.Context(), body)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, dto.ResponseError{
+		if errors.Is(err, msgerr.ErrEmailNotExist) {
+			c.JSON(http.StatusBadRequest, dto.ResponseError{
+				Success: false,
+				Message: err.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
 			Success: false,
-			Message: err.Error(),
+			Message: "a system error has accurred",
 		})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, dto.ResponseSuccess{
+	c.JSON(http.StatusOK, dto.ResponseSuccess{
 		Success: true,
 		Message: "User login successfully",
 		Data:    res,
