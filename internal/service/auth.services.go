@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/MGT06/e-wallet_backend/internal/dto"
 	msgerr "github.com/MGT06/e-wallet_backend/internal/message"
@@ -58,6 +59,10 @@ func (as *AuthService) LoginAS(c context.Context, body dto.LoginRequest) (*dto.L
 		return nil, err
 	}
 
+	if user.DeletedAt != nil {
+		return nil, msgerr.ErrAccounDeleted
+	}
+
 	_, err = as.conf.Compare(body.Password, user.Password)
 	if err != nil {
 		log.Printf("[AuthService.LoginAS] Compare %s", err)
@@ -72,10 +77,46 @@ func (as *AuthService) LoginAS(c context.Context, body dto.LoginRequest) (*dto.L
 		return nil, err
 	}
 
-	key := fmt.Sprintf("ewalet:token:%d", user.ID)
-	as.redis.Set(c, key, key, 3)
+	key := fmt.Sprintf("ewallet:token:%d", user.ID)
+	err = as.redis.Set(c, key, true, 3*time.Minute).Err()
+	if err != nil {
+		log.Printf("[AuthService.LoginAS] Redis Set %s", err)
+		return nil, err
+	}
 
 	return &dto.LoginResponse{
 		Token: token,
 	}, nil
+}
+
+func (as *AuthService) LogoutAS(c context.Context, userID int64) (err error) {
+
+	key := fmt.Sprintf("ewallet:token:%d", userID)
+
+	err = as.CheckSessionAS(c, key)
+	if err != nil {
+		return err
+	}
+
+	err = as.redis.Del(c, key).Err()
+	if err != nil {
+		log.Printf("[AuthService.Logout] Gagal menghapus key Redis: %v", err)
+		return err
+	}
+
+	return nil
+}
+
+func (as *AuthService) CheckSessionAS(c context.Context, key string) (err error) {
+	key, err = as.redis.Get(c, key).Result()
+	if err != nil {
+		log.Printf("[AuthService.CheckSession] Redis Get %s", err)
+		return msgerr.ErrTokenExpired
+	}
+
+	if key == "0" {
+		return msgerr.ErrSesionLogout
+	}
+
+	return nil
 }
