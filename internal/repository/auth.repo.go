@@ -52,18 +52,9 @@ func (ar *AuthRepo) RegisterAR(c context.Context, body dto.RegisterRequest) (err
 
 func (ar *AuthRepo) GetUserByEmail(c context.Context, body dto.LoginRequest) (*models.Account, error) {
 	query := `
-        SELECT 
-            id,
-            fullname, 
-            image_url, 
-            phone, 
-            email, 
-            password, 
-            pin, 
-            balance, 
-            deleted_at,
-            created_at, 
-            updated_at
+        SELECT
+            password,
+            deleted_at
         FROM accounts
         WHERE email = $1
     `
