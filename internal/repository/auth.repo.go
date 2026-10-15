@@ -79,7 +79,7 @@ func (ar *AuthRepo) GetUserById(c context.Context, body dto.LoginRequest) (*mode
             image_url, 
             phone, 
             email, 
-            balance,
+            balance
         FROM accounts
         WHERE id = $1
     `
@@ -89,7 +89,6 @@ func (ar *AuthRepo) GetUserById(c context.Context, body dto.LoginRequest) (*mode
 		&user.ImageURL,
 		&user.Phone,
 		&user.Email,
-		&user.Pin,
 		&user.Balance,
 	)
 
