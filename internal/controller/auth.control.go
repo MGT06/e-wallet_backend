@@ -181,12 +181,12 @@ func (ac *AuthContorller) ForgotPasswordAC(c *gin.Context) {
 // @Success			200		{object}	dto.ResponseSuccess
 // @Failure			400		{object}	dto.ResponseError
 func (ac *AuthContorller) LogoutAC(c *gin.Context) {
-	res, ok := c.Get("ID")
-	if !ok {
+	res, exist := c.Get("ID")
+	if !exist {
 		log.Printf("[LogoutAC.Get ID] Error get token from redis")
-		c.JSON(http.StatusBadRequest, dto.ResponseError{
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
 			Success: false,
-			Message: "please login first",
+			Message: "a system error has accurred",
 		})
 		return
 	}
