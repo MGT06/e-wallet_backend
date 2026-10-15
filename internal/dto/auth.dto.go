@@ -16,3 +16,8 @@ type LoginRequest struct {
 type LoginResponse struct {
 	Token string `json:"token"`
 }
+
+// Forgot
+type ForgotRequest struct {
+	Email string `json:"email" binding:"required,email"`
+}

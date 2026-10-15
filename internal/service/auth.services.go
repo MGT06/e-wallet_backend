@@ -7,8 +7,10 @@ import (
 	"time"
 
 	"github.com/MGT06/e-wallet_backend/internal/dto"
+	"github.com/MGT06/e-wallet_backend/internal/mailer"
 	msgerr "github.com/MGT06/e-wallet_backend/internal/message"
 	"github.com/MGT06/e-wallet_backend/internal/repository"
+	"github.com/MGT06/e-wallet_backend/internal/utils"
 	"github.com/MGT06/e-wallet_backend/pkg"
 	"github.com/redis/go-redis/v9"
 )
@@ -99,4 +101,54 @@ func (as *AuthService) LogoutAS(c context.Context, userID int64) (err error) {
 	}
 
 	return nil
+}
+
+type ForgotData struct {
+	Email string
+	OTP   string
+}
+
+func (as *AuthService) ForgotPasswordAS(c context.Context, email string) (string, error) {
+	emailUser, err := as.ar.ForgotPasswordAR(c, email)
+	if err != nil {
+		return "", err
+	}
+
+	otp, er := utils.GenerateOTP()
+	if er != nil {
+		return "", err
+	}
+
+	m, fail := mailer.NewMailer()
+	if fail != nil {
+		return "", fail
+	}
+
+	html, errors := mailer.RenderTemplate("email.template.html", ForgotData{
+		Email: emailUser,
+		OTP:   otp,
+	})
+	
+	if errors != nil {
+		return "", errors
+	}
+
+
+	if err := m.SendMail(email, html); err != nil {
+		return "", err
+	}
+
+	hash, e := as.conf.HashPassword(otp)
+	if e != nil {
+		return "", e
+	}
+
+	key := fmt.Sprintf("ewallet:otp:%s", email)
+	ttl := 3 * time.Minute
+
+	if err := utils.SetToRedis(c, as.redis, key, hash, ttl); err != nil {
+		return "", err
+	}
+
+	return emailUser, nil
 }

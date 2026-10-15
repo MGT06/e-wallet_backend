@@ -10,6 +10,7 @@ import (
 	"github.com/MGT06/e-wallet_backend/internal/service"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	"github.com/jackc/pgx/v5"
 )
 
 type AuthContorller struct {
@@ -119,6 +120,53 @@ func (ac *AuthContorller) LoginAC(c *gin.Context) {
 		Success: true,
 		Message: "User login successfully",
 		Data:    res,
+	})
+}
+
+// Forgot Password
+//
+// @Summary			Validation email for reset password
+// @Tags			Auth
+// @Accept			json
+// @Produce			json
+// @Router			/auth/forgot	[post]
+// @Param			body	body 		dto.ForgotRequest 	true 	"email user"
+// @Success			200		{object}	dto.ResponseSuccess
+// @Failure			400		{object}	dto.ResponseError
+// @Failure			401		{object}	dto.ResponseError
+// @Failure			500		{object}	dto.ResponseError
+func (ac *AuthContorller) ForgotPasswordAC(c *gin.Context) {
+	var body dto.ForgotRequest
+	if err := c.ShouldBindWith(&body, binding.JSON); err != nil {
+		log.Println(err)
+		c.JSON(http.StatusBadRequest, dto.ResponseError{
+			Success: false,
+			Message: "invalid request payload",
+		})
+		return
+	}
+
+	emailUser, err := ac.as.ForgotPasswordAS(c.Request.Context(), body.Email)
+	if err != nil {
+		log.Println(err)
+		if errors.Is(err, pgx.ErrNoRows) {
+			c.JSON(http.StatusUnauthorized, dto.ResponseError{
+				Success: false,
+				Message: err.Error(),
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has occurred",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.ResponseSuccess{
+		Success: true,
+		Data:    emailUser,
+		Message: "email exists, please reset your password",
 	})
 }
 
