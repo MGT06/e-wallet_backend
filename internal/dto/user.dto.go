@@ -10,8 +10,8 @@ type UserHeaderResponse struct {
 type UserProfileResponse struct {
 	Fullname string  `json:"name"`
 	ImageURL *string `json:"image_url"`
-	Phone    *string `db:"phone"`
-	Email    string  `db:"email"`
+	Phone    *string `json:"phone"`
+	Email    string  `json:"email"`
 }
 
 type UserChangeProfileRequest struct {
@@ -24,6 +24,6 @@ type UserChangeProfileRequest struct {
 type UserChangeProfileResponse struct {
 	Fullname string  `json:"name"`
 	ImageURL *string `json:"image_url"`
-	Phone    *string `db:"phone"`
-	Email    string  `db:"email"`
+	Phone    *string `json:"phone"`
+	Email    string  `json:"email"`
 }
