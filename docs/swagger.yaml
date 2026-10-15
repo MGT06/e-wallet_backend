@@ -60,9 +60,9 @@ paths:
       - application/json
       description: Log in for get full access
       parameters:
-      - description: Body data to access EventHub
+      - description: Body data to access ewalet
         in: body
-        name: data
+        name: body
         required: true
         schema:
           $ref: '#/definitions/dto.LoginRequest'
@@ -80,6 +80,25 @@ paths:
       summary: Log In
       tags:
       - Auth
+  /auth/logout:
+    delete:
+      description: Log out for delete access user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ResponseSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - Bearer: []
+      summary: Log out
+      tags:
+      - Auth
   /auth/register:
     post:
       consumes:
@@ -88,7 +107,7 @@ paths:
       parameters:
       - description: Body data new user
         in: body
-        name: data
+        name: body
         required: true
         schema:
           $ref: '#/definitions/dto.RegisterRequest'
