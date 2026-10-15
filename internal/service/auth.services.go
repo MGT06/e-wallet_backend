@@ -69,7 +69,7 @@ func (as *AuthService) LoginAS(c context.Context, body dto.LoginRequest) (*dto.L
 		return nil, err
 	}
 
-	jwt := pkg.NewJWTClaims(user.ID, 3)
+	jwt := pkg.NewJWTClaims(user.ID, 60)
 
 	token, err := jwt.GeneretToken()
 	if err != nil {
@@ -78,7 +78,7 @@ func (as *AuthService) LoginAS(c context.Context, body dto.LoginRequest) (*dto.L
 	}
 
 	key := fmt.Sprintf("ewallet:token:%d", user.ID)
-	err = as.redis.Set(c, key, true, 3*time.Minute).Err()
+	err = as.redis.Set(c, key, true, 60*time.Minute).Err()
 	if err != nil {
 		log.Printf("[AuthService.LoginAS] Redis Set %s", err)
 		return nil, err
@@ -90,32 +90,12 @@ func (as *AuthService) LoginAS(c context.Context, body dto.LoginRequest) (*dto.L
 }
 
 func (as *AuthService) LogoutAS(c context.Context, userID int64) (err error) {
-
 	key := fmt.Sprintf("ewallet:token:%d", userID)
 
-	err = as.CheckSessionAS(c, key)
-	if err != nil {
-		return err
-	}
-
-	err = as.redis.Del(c, key).Err()
+	err = as.redis.Set(c, key, false, 60*time.Minute).Err()
 	if err != nil {
 		log.Printf("[AuthService.Logout] Gagal menghapus key Redis: %v", err)
 		return err
-	}
-
-	return nil
-}
-
-func (as *AuthService) CheckSessionAS(c context.Context, key string) (err error) {
-	key, err = as.redis.Get(c, key).Result()
-	if err != nil {
-		log.Printf("[AuthService.CheckSession] Redis Get %s", err)
-		return msgerr.ErrTokenExpired
-	}
-
-	if key == "0" {
-		return msgerr.ErrSesionLogout
 	}
 
 	return nil
