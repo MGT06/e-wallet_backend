@@ -30,7 +30,7 @@ func NewAuthContorller(as *service.AuthService) *AuthContorller {
 // @Accept			json
 // @Produce			json
 // @Router			/auth/register	[post]
-// @Param			data	body 		dto.RegisterRequest true "Body data new user"
+// @Param			body	body 		dto.RegisterRequest true "Body data new user"
 // @Success			200		{object}	dto.ResponseSuccess
 // @Failure			400		{object}	dto.ResponseError
 // @Failure			409		{object}	dto.ResponseError
