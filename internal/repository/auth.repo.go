@@ -75,17 +75,11 @@ func (ar *AuthRepo) GetUserByEmail(c context.Context, body dto.LoginRequest) (*m
 func (ar *AuthRepo) GetUserById(c context.Context, body dto.LoginRequest) (*models.Account, error) {
 	query := `
         SELECT 
-            id,
             fullname, 
             image_url, 
             phone, 
             email, 
-            password, 
-            pin, 
-            balance, 
-            deleted_at,
-            created_at, 
-            updated_at
+            balance,
         FROM accounts
         WHERE id = $1
     `
