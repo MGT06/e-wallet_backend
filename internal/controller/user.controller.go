@@ -53,8 +53,6 @@ func (uc *UserContorller) GetUserHeaderUC(c *gin.Context) {
 		return
 	}
 
-	log.Printf("User : %d", userID)
-
 	user, err := uc.us.GetUserHeaderUS(c.Request.Context(), userID)
 	if err != nil {
 		if errors.Is(err, msgerr.ErrUserNotExist) {
@@ -91,10 +89,10 @@ func (uc *UserContorller) GetUserHeaderUC(c *gin.Context) {
 // @Failure			400		{object}	dto.ResponseError
 // @Failure			500		{object}	dto.ResponseError
 func (uc *UserContorller) GetUserProfileUC(c *gin.Context) {
-	res, ok := c.Get("ID")
-	if !ok {
+	res, exist := c.Get("ID")
+	if !exist {
 		log.Printf("[UserContorller.GetUserProfileUC] Error get token from redis")
-		c.JSON(http.StatusBadRequest, dto.ResponseError{
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
 			Success: false,
 			Message: "please login first",
 		})
@@ -110,8 +108,6 @@ func (uc *UserContorller) GetUserProfileUC(c *gin.Context) {
 		})
 		return
 	}
-
-	log.Printf("User : %d", userID)
 
 	user, err := uc.us.GetUserProfileUS(c.Request.Context(), userID)
 	if err != nil {
