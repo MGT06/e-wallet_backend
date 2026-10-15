@@ -8,6 +8,7 @@ import (
 	"github.com/MGT06/e-wallet_backend/internal/dto"
 	msgerr "github.com/MGT06/e-wallet_backend/internal/message"
 	"github.com/MGT06/e-wallet_backend/internal/models"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -82,6 +83,9 @@ func (ar *AuthRepo) ForgotPasswordAR(c context.Context, email string) (string, e
 
 	var user models.Account
 	if err := res.Scan(&user.Email); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return "", msgerr.ErrEmailNoExists
+		}
 		return "", err
 	}
 

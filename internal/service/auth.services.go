@@ -113,9 +113,6 @@ func (as *AuthService) ForgotPasswordAS(c context.Context, email string) (string
 	if err != nil {
 		return "", err
 	}
-	if len(emailUser) == 0 {
-		return "", msgerr.ErrEmailNoExists
-	}
 
 	otp, er := utils.GenerateOTP()
 	if er != nil {
