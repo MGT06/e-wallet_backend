@@ -33,12 +33,12 @@ func NewUserContorller(us *service.UserService) *UserContorller {
 // @Failure			400		{object}	dto.ResponseError
 // @Failure			500		{object}	dto.ResponseError
 func (uc *UserContorller) GetUserHeaderUC(c *gin.Context) {
-	res, ok := c.Get("ID")
-	if !ok {
+	res, exist := c.Get("ID")
+	if !exist {
 		log.Printf("[UserContorller.GetUserHeaderUC] Error get token from redis")
-		c.JSON(http.StatusBadRequest, dto.ResponseError{
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
 			Success: false,
-			Message: "please login first",
+			Message: "a system error has accurred",
 		})
 		return
 	}
@@ -94,7 +94,7 @@ func (uc *UserContorller) GetUserProfileUC(c *gin.Context) {
 		log.Printf("[UserContorller.GetUserProfileUC] Error get token from redis")
 		c.JSON(http.StatusInternalServerError, dto.ResponseError{
 			Success: false,
-			Message: "please login first",
+			Message: "a system error has accurred",
 		})
 		return
 	}
