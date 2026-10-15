@@ -99,3 +99,17 @@ func (ar *AuthRepo) GetUserById(c context.Context, body dto.LoginRequest) (*mode
 
 	return &user, nil
 }
+
+func (ar *AuthRepo) ForgotPasswordAR(c context.Context, email string) (string, error) {
+	query := "SELECT email FROM accounts WHERE email = $1"
+	args := []any{email}
+
+	res := ar.db.QueryRow(c, query, args...)
+
+	var user models.Account
+	if err := res.Scan(&user.Email); err != nil {
+		return "", err
+	}
+
+	return user.Email, nil
+}

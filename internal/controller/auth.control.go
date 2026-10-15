@@ -122,6 +122,44 @@ func (ac *AuthContorller) LoginAC(c *gin.Context) {
 	})
 }
 
+// Forgot Password
+//
+// @Summary			Validation email for reset password
+// @Tags			Auth
+// @Accept			json
+// @Produce			json
+// @Router			/auth/forgot	[post]
+// @Param			body	body 		dto.ForgotRequest 	true 	"email user"
+// @Success			200		{object}	dto.ResponseSuccess
+// @Failure			500		{object}	dto.ResponseError
+func (ac *AuthContorller) ForgotPasswordAC(c *gin.Context) {
+	var body dto.ForgotRequest
+	if err := c.ShouldBindWith(&body, binding.JSON); err != nil {
+		log.Println(err)
+		c.JSON(http.StatusBadRequest, dto.ResponseError{
+			Success: false,
+			Message: "invalid request payload",
+		})
+		return
+	}
+
+	emailUser, err := ac.as.ForgotPasswordAS(c.Request.Context(), body.Email)
+	if err != nil {
+		log.Println(err)
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has occurred",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.ResponseSuccess{
+		Success: true,
+		Data:    emailUser,
+		Message: "email exists, please reset your password",
+	})
+}
+
 // Logout
 //
 // @Summary			Log out
