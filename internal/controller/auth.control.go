@@ -84,7 +84,7 @@ func (ac *AuthContorller) RegisterAC(c *gin.Context) {
 // @Accept			json
 // @Produce			json
 // @Router			/auth/login	[post]
-// @Param			data	body dto.LoginRequest true "Body data to access EventHub"
+// @Param			body	body 		dto.LoginRequest true "Body data to access ewalet"
 // @Success			200		{object}	dto.ResponseSuccess
 // @Failure			400		{object}	dto.ResponseError
 func (ac *AuthContorller) LoginAC(c *gin.Context) {
