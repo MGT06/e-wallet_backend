@@ -32,3 +32,7 @@ type UserChangePasswordRequest struct {
 	OldPassword string `json:"old_password" binding:"min=8" example:"Admin@1234"`
 	NewPassword string `json:"new_password" binding:"min=8" example:"Admin@1234"`
 }
+
+type SetPinRequest struct {
+	Pin string `json:"pin" binding:"required,min=6,max=6"`
+}
