@@ -1,5 +1,5 @@
-INSERT INTO topups (reference_no, account_id, payment_method_id, amount, tax, total_amount, status, paid_at, created_at) VALUES
-('TOPUP-20260601-001', 1, 1, 1000000, 1000, 1001000, 'success', NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days'),
-('TOPUP-20260602-002', 2, 3, 500000, 1000, 508500, 'success', NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day'),
-('TOPUP-20260603-003', 3, 4, 300000, 1000, 305500, 'success', NOW() - INTERVAL '5 hours', NOW() - INTERVAL '5 hours'),
-('TOPUP-20260603-004', 4, 2, 2000000, 2000, 2002000, 'pending', NULL, NOW());
+INSERT INTO topups (reference_no, account_id, payment_method_id, amount, tax, total_amount, status, paid_at, created_at, xendit_invoice_id, payment_url, expires_at) VALUES
+('TOPUP-20260601-001', 1, 1, 1000000, 1000, 1001000, 'success', NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days', 'inv_xen_9a8b7c6d5e4f', 'https://checkout.xendit.co/web/693a1b2c3d4e5f67](https://checkout.xendit.co/web/693a1b2c3d4e5f67', '2026-10-14 07:42:48.104164+00'),
+('TOPUP-20260602-002', 2, 3, 500000, 1000, 508500, 'success', NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day', 'inv_xen_1a2b3c4d5e6f', 'https://checkout.xendit.co/web/692f8e7d6c5b4a39](https://checkout.xendit.co/web/692f8e7d6c5b4a39', '2026-10-15 07:42:48.104164+00'),
+('TOPUP-20260603-003', 3, 4, 300000, 1000, 305500, 'success', NOW() - INTERVAL '5 hours', NOW() - INTERVAL '5 hours', 'inv_xen_112233445566', 'https://checkout.xendit.co/web/691e2d3c4b5a6f78](https://checkout.xendit.co/web/691e2d3c4b5a6f78', '2026-10-15 07:42:48.104164+00'),
+('TOPUP-20260603-004', 4, 2, 2000000, 2000, 2002000, 'pending', NULL, NOW(), 'inv_xen_77889900aabb', 'https://checkout.xendit.co/web/693b2c1d4e3f5a6b](https://checkout.xendit.co/web/693b2c1d4e3f5a6b', '2026-10-15 07:42:48.104164+00');
