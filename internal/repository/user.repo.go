@@ -2,11 +2,13 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"log"
 
 	"github.com/MGT06/e-wallet_backend/internal/dto"
 	msgerr "github.com/MGT06/e-wallet_backend/internal/message"
 	"github.com/MGT06/e-wallet_backend/internal/models"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -68,7 +70,7 @@ func (ur *UserRepo) GetUserProfileUR(c context.Context, userID int64) (*models.A
 	return &user, nil
 }
 
-func (ur *UserRepo) ChangeProfileUR(ctx context.Context, userID int32, image_path string, body dto.UserChangeProfileRequest) (*models.Account, error) {
+func (ur *UserRepo) ChangeProfileUR(ctx context.Context, userID int64, image_path string, body dto.UserChangeProfileRequest) (*models.Account, error) {
 	query := `
         UPDATE accounts
         SET 
@@ -108,4 +110,34 @@ func (ur *UserRepo) ChangeProfileUR(ctx context.Context, userID int32, image_pat
 	}
 
 	return &profile, nil
+}
+
+func (ur *UserRepo) DeletePhotoProfileUR(ctx context.Context, userID int64) error {
+	query := `
+        UPDATE accounts
+        SET 
+            image_url = ''
+        WHERE id = $1
+    `
+	tag, err := ur.db.Exec(ctx, query, userID)
+	if err != nil {
+		log.Printf("[UserRepo.DeletePhotoProfileUR] Exec : %s", err)
+		var repoErr *pgconn.PgError
+		if errors.As(err, &repoErr) {
+			code, msg := repoErr.Code, repoErr.ConstraintName
+			log.Printf("code : %s\nmessage : %s", code, msg)
+			if code == "23505" && msg == "accounts_id_key" {
+				log.Printf("code : %s\nmessage : %s cek", code, msg)
+				return msgerr.ErrUserNotExist
+			}
+		}
+		return err
+	}
+
+	if tag.RowsAffected() == 0 {
+		log.Printf("[UserRepo.DeletePhotoProfileUR] RowsAffected : %s", err)
+		return msgerr.ErrNoRowAffected
+	}
+
+	return nil
 }
