@@ -163,7 +163,7 @@ func (uc *UserContorller) ChangeProfileUC(c *gin.Context) {
 		return
 	}
 
-	userIDInt64, ok := res.(int64)
+	userID, ok := res.(int64)
 	if !ok {
 		log.Printf("[UserContorller.ChangeProfileUC] Error casting ID to int64")
 		c.JSON(http.StatusInternalServerError, dto.ResponseError{
@@ -172,7 +172,6 @@ func (uc *UserContorller) ChangeProfileUC(c *gin.Context) {
 		})
 		return
 	}
-	userID := int32(userIDInt64)
 
 	var body dto.UserChangeProfileRequest
 	if err := c.ShouldBindWith(&body, binding.FormMultipart); err != nil {
@@ -214,5 +213,60 @@ func (uc *UserContorller) ChangeProfileUC(c *gin.Context) {
 		Success: true,
 		Message: "change user profile success",
 		Data:    profile,
+	})
+}
+
+// Delete photo profile
+//
+// @Summary			Delete photo profile
+// @Description		Delete foto profile
+// @Tags			User
+// @Produce			json
+// @Security		Bearer
+// @Router			/user/image	[delete]
+// @Success			200		{object}	dto.ResponseSuccess
+// @Failure			400		{object}	dto.ResponseError
+// @Failure			500		{object}	dto.ResponseError
+func (uc *UserContorller) DeletProfileUC(c *gin.Context) {
+	res, exist := c.Get("ID")
+	if !exist {
+		log.Printf("[UserContorller.DeletProfileUC] Error get token from redis")
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	userID, ok := res.(int64)
+	if !ok {
+		log.Printf("[UserContorller.DeletProfileUC] Error change to string")
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	err := uc.us.DeletePhotoProfileUS(c.Request.Context(), userID)
+	if err != nil {
+		if errors.Is(err, msgerr.ErrNoRowAffected) {
+			c.JSON(http.StatusBadRequest, dto.ResponseError{
+				Success: false,
+				Message: err.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.ResponseSuccess{
+		Success: true,
+		Message: "deleted photo profile succcess",
 	})
 }
