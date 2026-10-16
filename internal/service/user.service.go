@@ -13,15 +13,18 @@ import (
 	"github.com/MGT06/e-wallet_backend/internal/dto"
 	msgerr "github.com/MGT06/e-wallet_backend/internal/message"
 	"github.com/MGT06/e-wallet_backend/internal/repository"
+	"github.com/MGT06/e-wallet_backend/pkg"
 )
 
 type UserService struct {
-	ur *repository.UserRepo
+	ur   *repository.UserRepo
+	conf *pkg.ConfigHash
 }
 
 func NewUserService(userRepo *repository.UserRepo) *UserService {
 	return &UserService{
-		ur: userRepo,
+		ur:   userRepo,
+		conf: pkg.NewConfigHash(),
 	}
 }
 
@@ -135,6 +138,28 @@ func (us *UserService) DeletePhotoProfileUS(ctx context.Context, userID int64) e
 	}
 
 	err = us.ur.DeletePhotoProfileUR(ctx, userID)
+	if err != nil {
+		return nil
+	}
+	return nil
+}
+
+func (us *UserService) ChangePasswordUS(ctx context.Context, userID int64, body dto.UserChangePasswordRequest) error {
+	oldPassword, err := us.ur.GetUserUR(ctx, userID)
+
+	_, err = us.conf.Compare(body.OldPassword, oldPassword)
+	if err != nil {
+		log.Printf("[AuthService.LoginAS] Compare %s", err)
+		return err
+	}
+
+	newPassword, err := us.conf.HashPassword(body.NewPassword)
+	if err != nil {
+		log.Printf("[AuthService.RegisterAS] HashPassword %s", err)
+		return err
+	}
+
+	err = us.ur.ChangePasswordUR(ctx, userID, newPassword)
 	if err != nil {
 		return nil
 	}
