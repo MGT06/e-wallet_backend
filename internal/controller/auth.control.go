@@ -272,3 +272,50 @@ func (ac *AuthContorller) CheckOTP(c *gin.Context) {
 		Message: "OTP is match, please reset your password",
 	})
 }
+
+// Reset Password
+//
+// @Summary			Reset Password User
+// @Tags			Auth
+// @Accept			json
+// @Produce			json
+// @Router			/auth/reset-password	[post]
+// @Param			body	body 		dto.ResetPassRequest 	true 	"email and new password user"
+// @Success			204		{object}	dto.ResponseSuccess
+// @Success			400		{object}	dto.ResponseSuccess
+// @Failure			500		{object}	dto.ResponseError
+func (ac *AuthContorller) ResetPasswordAC(c *gin.Context) {
+	var body dto.ResetPassRequest
+	if err := c.ShouldBindWith(&body, binding.JSON); err != nil {
+		log.Println(err)
+		found, isErr := errors.AsType[validator.ValidationErrors](err)
+		if isErr {
+			err := utils.ValidationError(found)
+			c.JSON(http.StatusBadRequest, dto.ResponseError{
+				Success: false,
+				Message: err,
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	if err := ac.as.ResetPassword(c.Request.Context(), body); err != nil {
+		log.Println(err)
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	c.JSON(http.StatusNoContent, dto.ResponseSuccess{
+		Success: true,
+		Message: "Succes Reset Password",
+	})
+}

@@ -163,3 +163,16 @@ func (as *AuthService) CheckOTP(c context.Context, otp, email string) error {
 
 	return nil
 }
+
+func (as *AuthService) ResetPassword(c context.Context, body dto.ResetPassRequest) error {
+	newPassword, err := as.conf.HashPassword(body.NewPassword)
+	if err != nil {
+		return err
+	}
+
+	if err := as.ar.ResetPassword(c, newPassword, body.Email); err != nil {
+		return	err
+	}
+
+	return nil
+}
