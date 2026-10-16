@@ -49,7 +49,7 @@ func (us *UserService) GetUserProfileUS(c context.Context, userID int64) (*dto.U
 	}, nil
 }
 
-func (us *UserService) ChangeProfileUS(ctx context.Context, userID int32, body dto.UserChangeProfileRequest) (*dto.UserChangeProfileResponse, error) {
+func (us *UserService) ChangeProfileUS(ctx context.Context, userID int64, body dto.UserChangeProfileRequest) (*dto.UserChangeProfileResponse, error) {
 	if body.Phone != nil {
 		if strings.HasPrefix(*body.Phone, "62") {
 			*body.Phone = "0" + (*body.Phone)[2:]
@@ -75,7 +75,7 @@ func (us *UserService) ChangeProfileUS(ctx context.Context, userID int32, body d
 			return nil, msgerr.ErrImageToLarge
 		}
 
-		oldUser, err := us.ur.GetUserHeaderUR(ctx, int64(userID))
+		oldUser, err := us.ur.GetUserHeaderUR(ctx, userID)
 		if err == nil && oldUser.ImageURL != nil && *oldUser.ImageURL != "" {
 			oldFilePath := filepath.Join("public", "photo_profiles", filepath.Base(*oldUser.ImageURL))
 			if err := os.Remove(oldFilePath); err != nil && !os.IsNotExist(err) {
@@ -125,4 +125,18 @@ func (us *UserService) ChangeProfileUS(ctx context.Context, userID int32, body d
 		Phone:    profile.Phone,
 		Email:    profile.Email,
 	}, nil
+}
+
+func (us *UserService) DeletePhotoProfileUS(ctx context.Context, userID int64) error {
+	oldUser, err := us.ur.GetUserHeaderUR(ctx, userID)
+	oldFilePath := filepath.Join("public", "photo_profiles", filepath.Base(*oldUser.ImageURL))
+	if err := os.Remove(oldFilePath); err != nil && !os.IsNotExist(err) {
+		log.Printf("[DeletePhotoProfileUS.RemoveOldFile] : %s", err.Error())
+	}
+
+	err = us.ur.DeletePhotoProfileUR(ctx, userID)
+	if err != nil {
+		return nil
+	}
+	return nil
 }
