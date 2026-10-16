@@ -55,8 +55,7 @@ func (ar *AuthRepo) GetUserByEmail(c context.Context, body dto.LoginRequest) (*m
 	query := `
         SELECT
 			id,
-            password,
-            deleted_at
+            password
         FROM accounts
         WHERE email = $1
     `
@@ -64,7 +63,6 @@ func (ar *AuthRepo) GetUserByEmail(c context.Context, body dto.LoginRequest) (*m
 	err := ar.db.QueryRow(c, query, body.Email).Scan(
 		&user.ID,
 		&user.Password,
-		&user.DeletedAt,
 	)
 
 	if err != nil {

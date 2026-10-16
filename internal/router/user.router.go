@@ -19,4 +19,5 @@ func UserRouter(router *gin.Engine, pool *pgxpool.Pool, redis *redis.Client) {
 
 	user.GET("info", middleware.AuthMiddleware(redis), uc.GetUserHeaderUC)
 	user.GET("profile", middleware.AuthMiddleware(redis), uc.GetUserProfileUC)
+	user.PATCH("profile", middleware.AuthMiddleware(redis), uc.ChangeProfileUC)
 }

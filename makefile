@@ -17,9 +17,10 @@ migrate-down:
 
 db-seed:
 	cat $(SEEDER_PATH)/*.sql | psql $(DB_URL)
-	
+
+
 db-reset:
-	make migrate-down migrate-up db-seed flushdb
+	make migrate-down migrate-up db-seed
 
 up:
 	docker compose -f deployment/docker-compose.yml up -d

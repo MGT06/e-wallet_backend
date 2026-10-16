@@ -8,7 +8,10 @@ import (
 	"github.com/MGT06/e-wallet_backend/internal/dto"
 	msgerr "github.com/MGT06/e-wallet_backend/internal/message"
 	"github.com/MGT06/e-wallet_backend/internal/service"
+	"github.com/MGT06/e-wallet_backend/internal/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
 )
 
 type UserContorller struct {
@@ -130,5 +133,86 @@ func (uc *UserContorller) GetUserProfileUC(c *gin.Context) {
 		Success: true,
 		Message: "get user profile success",
 		Data:    user,
+	})
+}
+
+// Change profile user
+//
+// @Summary         Change user profile
+// @Description     Update user profile details including name, phone, email, and profile picture
+// @Tags            User
+// @Accept          multipart/form-data
+// @Produce         json
+// @Security        Bearer
+// @Param           name    formData    string  false   "Full Name" example("Alma'ruf Hidayat")
+// @Param           phone   formData    string  false   "Phone Number" example("081973779380")
+// @Param           email   formData    string  false   "Email Address" example("almarufhidayat99@gmail.com")
+// @Param           image   formData    file    false   "Profile Picture (.jpg, .jpeg, .png, max 2MB)"
+// @Router          /user/profile   [patch]
+// @Success         200     {object}    dto.ResponseSuccess{data=dto.UserChangeProfileResponse}
+// @Failure         400     {object}    dto.ResponseError
+// @Failure         500     {object}    dto.ResponseError
+func (uc *UserContorller) ChangeProfileUC(c *gin.Context) {
+	res, exist := c.Get("ID")
+	if !exist {
+		log.Printf("[UserContorller.ChangeProfileUC] Error get token from redis")
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has occurred",
+		})
+		return
+	}
+
+	userIDInt64, ok := res.(int64)
+	if !ok {
+		log.Printf("[UserContorller.ChangeProfileUC] Error casting ID to int64")
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has occurred",
+		})
+		return
+	}
+	userID := int32(userIDInt64)
+
+	var body dto.UserChangeProfileRequest
+	if err := c.ShouldBindWith(&body, binding.FormMultipart); err != nil {
+		log.Printf("[UserContorller.ChangeProfileUC] Bind error: %s", err.Error())
+		found, isErr := errors.AsType[validator.ValidationErrors](err)
+		if isErr {
+			err := utils.ValidationError(found)
+			c.JSON(http.StatusBadRequest, dto.ResponseError{
+				Success: false,
+				Message: err,
+			})
+			return
+		}
+		c.JSON(http.StatusBadRequest, dto.ResponseError{
+			Success: false,
+			Message: "invalid request format",
+		})
+		return
+	}
+
+	profile, err := uc.us.ChangeProfileUS(c.Request.Context(), userID, body)
+	if err != nil {
+		if errors.Is(err, msgerr.ErrExt) || errors.Is(err, msgerr.ErrImageToLarge) || errors.Is(err, msgerr.ErrUserNotExist) || errors.Is(err, msgerr.ErrPhoneFormat) {
+			c.JSON(http.StatusBadRequest, dto.ResponseError{
+				Success: false,
+				Message: err.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has occurred",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.ResponseSuccess{
+		Success: true,
+		Message: "change user profile success",
+		Data:    profile,
 	})
 }

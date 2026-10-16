@@ -15,4 +15,5 @@ func Router(router *gin.Engine, pool *pgxpool.Pool, redis *redis.Client) {
 	router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	StatusServer(router)
 	AuthRouter(router, pool, redis)
+	UserRouter(router, pool, redis)
 }

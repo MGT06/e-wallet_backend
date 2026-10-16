@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 
+	"github.com/MGT06/e-wallet_backend/internal/dto"
 	msgerr "github.com/MGT06/e-wallet_backend/internal/message"
 	"github.com/MGT06/e-wallet_backend/internal/models"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -65,4 +66,46 @@ func (ur *UserRepo) GetUserProfileUR(c context.Context, userID int64) (*models.A
 	}
 
 	return &user, nil
+}
+
+func (ur *UserRepo) ChangeProfileUR(ctx context.Context, userID int32, image_path string, body dto.UserChangeProfileRequest) (*models.Account, error) {
+	query := `
+        UPDATE accounts
+        SET 
+            fullname = COALESCE(NULLIF($1, ''), fullname),
+            image_url = COALESCE(NULLIF($2, ''), image_url),
+            phone = COALESCE(NULLIF($3, ''), phone),
+            email = COALESCE(NULLIF($4, ''), email)
+        WHERE id = $5
+        RETURNING 
+            fullname, 
+            image_url, 
+            phone, 
+            email
+    `
+	args := []any{
+		body.Fullname,
+		image_path,
+		body.Phone,
+		body.Email,
+		userID,
+	}
+	var profile models.Account
+	err := ur.db.QueryRow(
+		ctx,
+		query,
+		args...,
+	).Scan(
+		&profile.Fullname,
+		&profile.ImageURL,
+		&profile.Phone,
+		&profile.Email,
+	)
+
+	if err != nil {
+		log.Printf("[UserRepo.ChangeProfileUR] QueryRow : %s", err)
+		return nil, err
+	}
+
+	return &profile, nil
 }
