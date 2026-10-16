@@ -64,7 +64,7 @@ func (as *AuthService) LoginAS(c context.Context, body dto.LoginRequest) (*dto.L
 	_, err = as.conf.Compare(body.Password, user.Password)
 	if err != nil {
 		log.Printf("[AuthService.LoginAS] Compare %s", err)
-		return nil, err
+		return nil, msgerr.ErrEmailNotExist
 	}
 
 	jwt := pkg.NewJWTClaims(user.ID, 60)

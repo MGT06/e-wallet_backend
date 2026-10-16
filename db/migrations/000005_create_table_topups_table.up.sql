@@ -6,7 +6,10 @@ CREATE TABLE topups (
   amount            BIGINT             NOT NULL CHECK (amount > 0),
   tax               BIGINT             NOT NULL DEFAULT 0 CHECK (tax >= 0),
   total_amount      BIGINT             NOT NULL CHECK (total_amount >= amount),
-  status            status_transaction NOT NULL DEFAULT 'pending',
+  xendit_invoice_id VARCHAR(100) UNIQUE,
+  payment_url       TEXT,
+  expires_at        TIMESTAMPTZ,
+  status            status_topups NOT NULL DEFAULT 'pending',
   paid_at           TIMESTAMPTZ,
   created_at        TIMESTAMPTZ        NOT NULL DEFAULT now()
 );

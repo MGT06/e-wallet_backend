@@ -175,7 +175,7 @@ func (ur *UserRepo) ChangePasswordUR(ctx context.Context, userID int64, password
 
 }
 
-func (ar *UserRepo) GetUserUR(c context.Context, userID int64) (string, error) {
+func (ur *UserRepo) GetUserUR(c context.Context, userID int64) (string, error) {
 	query := `
         SELECT
             password
@@ -183,7 +183,7 @@ func (ar *UserRepo) GetUserUR(c context.Context, userID int64) (string, error) {
         WHERE id = $1
     `
 	var user string
-	err := ar.db.QueryRow(c, query, userID).Scan(
+	err := ur.db.QueryRow(c, query, userID).Scan(
 		&user,
 	)
 

@@ -84,7 +84,7 @@ func (ar *AuthRepo) ForgotPasswordAR(c context.Context, email string) (string, e
 	var user models.Account
 	if err := res.Scan(&user.Email); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return "", msgerr.ErrEmailNoExists
+			return "", msgerr.ErrEmailNotExist
 		}
 		return "", err
 	}

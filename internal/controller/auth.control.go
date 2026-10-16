@@ -225,8 +225,7 @@ func (ac *AuthContorller) LogoutAC(c *gin.Context) {
 
 	c.JSON(http.StatusOK, dto.ResponseSuccess{
 		Success: true,
-		Message: "logout successfully",
-		Data:    res,
+		Message: "successfully logout ",
 	})
 }
 

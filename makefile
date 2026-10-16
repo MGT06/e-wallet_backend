@@ -10,7 +10,7 @@ migrate-create:
 	migrate create -ext sql -dir $(MIGRATE_PATH) -seq create_$(NAME)_table
 
 migrate-up:
-	migrate -database $(DB_URL) -path $(MIGRATE_PATH) up
+	migrate -database $(DB_URL) -path $(MIGRATE_PATH) up --build
 
 migrate-down:
 	migrate -database $(DB_URL) -path $(MIGRATE_PATH) down $(N)
@@ -23,7 +23,7 @@ db-reset:
 	make migrate-down migrate-up db-seed
 
 up:
-	docker compose -f deployment/docker-compose.yml up -d
+	docker compose -f deployment/docker-compose.yml up -d --build
 
 down:
 	docker compose -f deployment/docker-compose.yml down
