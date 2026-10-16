@@ -195,7 +195,7 @@ func (uc *UserContorller) ChangeProfileUC(c *gin.Context) {
 
 	profile, err := uc.us.ChangeProfileUS(c.Request.Context(), userID, body)
 	if err != nil {
-		if errors.Is(err, msgerr.ErrExt) || errors.Is(err, msgerr.ErrImageToLarge) || errors.Is(err, msgerr.ErrUserNotExist) {
+		if errors.Is(err, msgerr.ErrExt) || errors.Is(err, msgerr.ErrImageToLarge) || errors.Is(err, msgerr.ErrUserNotExist) || errors.Is(err, msgerr.ErrPhoneFormat) {
 			c.JSON(http.StatusBadRequest, dto.ResponseError{
 				Success: false,
 				Message: err.Error(),

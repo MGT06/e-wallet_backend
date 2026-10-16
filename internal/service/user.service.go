@@ -50,6 +50,15 @@ func (us *UserService) GetUserProfileUS(c context.Context, userID int64) (*dto.U
 }
 
 func (us *UserService) ChangeProfileUS(ctx context.Context, userID int32, body dto.UserChangeProfileRequest) (*dto.UserChangeProfileResponse, error) {
+	if body.Phone != nil {
+		if strings.HasPrefix(*body.Phone, "62") {
+			*body.Phone = "0" + (*body.Phone)[2:]
+		}
+
+		if !strings.HasPrefix(*body.Phone, "0") {
+			return nil, msgerr.ErrPhoneFormat
+		}
+	}
 
 	var filename string
 	dirPath := filepath.Join("public", "photo_profiles")
