@@ -27,3 +27,8 @@ type UserChangeProfileResponse struct {
 	Phone    *string `json:"phone"`
 	Email    string  `json:"email"`
 }
+
+type UserChangePasswordRequest struct {
+	OldPassword string `json:"old_password" binding:"min=8" example:"Admin@1234"`
+	NewPassword string `json:"new_password" binding:"min=8" example:"Admin@1234"`
+}
