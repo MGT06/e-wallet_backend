@@ -51,18 +51,20 @@ func (ar *AuthRepo) RegisterAR(c context.Context, body dto.RegisterRequest) (err
 	return nil
 }
 
-func (ar *AuthRepo) GetUserByEmail(c context.Context, body dto.LoginRequest) (*models.Account, error) {
+func (ar *AuthRepo) GetUserByEmail(c context.Context, body dto.LoginRequest) (*models.LoginMDL, error) {
 	query := `
-        SELECT
+		SELECT
 			id,
-            password
-        FROM accounts
-        WHERE email = $1
+		    password,
+		    (a.pin IS NOT NULL) AS is_has_pin
+		FROM accounts a
+		WHERE email = $1
     `
-	var user models.Account
+	var user models.LoginMDL
 	err := ar.db.QueryRow(c, query, body.Email).Scan(
 		&user.ID,
 		&user.Password,
+		&user.IsHasPin,
 	)
 
 	if err != nil {
