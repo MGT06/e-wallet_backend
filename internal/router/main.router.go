@@ -11,7 +11,8 @@ import (
 )
 
 func Router(router *gin.Engine, pool *pgxpool.Pool, redis *redis.Client) {
-	router.Use(middleware.Origin)
+	router.Use(middleware.Cors)
+	router.Static("public/image", "public/photo_profiles")
 	router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	StatusServer(router)
 	AuthRouter(router, pool, redis)
