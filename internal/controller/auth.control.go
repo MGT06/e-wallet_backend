@@ -60,6 +60,7 @@ func (ac *AuthContorller) RegisterAC(c *gin.Context) {
 	}
 
 	if err := ac.as.RegisterAS(c.Request.Context(), body); err != nil {
+		log.Println(err)
 		if errors.Is(err, msgerr.ErrNoRowAffected) {
 			c.JSON(http.StatusBadRequest, dto.ResponseError{
 				Success: false,
@@ -226,5 +227,48 @@ func (ac *AuthContorller) LogoutAC(c *gin.Context) {
 		Success: true,
 		Message: "logout successfully",
 		Data:    res,
+	})
+}
+
+// Check OTP
+//
+// @Summary			Check OTP user
+// @Tags			Auth
+// @Accept			json
+// @Produce			json
+// @Router			/auth/check-otp		[post]
+// @Success			200		{object}	dto.ResponseSuccess
+// @Success			400		{object}	dto.ResponseSuccess
+// @Success			401		{object}	dto.ResponseSuccess
+// @Failure			500		{object}	dto.ResponseError
+func (ac *AuthContorller) CheckOTP(c *gin.Context) {
+	var body dto.CheckOTPRequest
+	if err := c.ShouldBindWith(&body, binding.JSON); err != nil {
+		log.Println(err)
+		c.JSON(http.StatusBadRequest, dto.ResponseError{
+			Success: false,
+			Message: "invalid request payload",
+		})
+		return
+	}
+
+	if err := ac.as.CheckOTP(c.Request.Context(), body.OTP, body.Email); err != nil {
+		if errors.Is(err, msgerr.ErrInvalidInput) {
+			c.JSON(http.StatusUnauthorized, dto.ResponseError{
+				Success: false,
+				Message: "OTP does not match",
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.ResponseSuccess{
+		Success: true,
+		Message: "OTP is match, please reset your password",
 	})
 }

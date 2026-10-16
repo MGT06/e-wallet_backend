@@ -147,3 +147,18 @@ func (as *AuthService) ForgotPasswordAS(c context.Context, email string) (string
 
 	return emailUser, nil
 }
+
+func (as *AuthService) CheckOTP(c context.Context, otp, email string) error {
+	key := fmt.Sprintf("ewallet:otp:%s", email)
+	
+	realotp, err := utils.GetFromRedis[string](c, as.redis, key)
+	if err != nil {
+		return err
+	}
+
+	if _, err := as.conf.Compare(otp, realotp); err != nil {
+		return err
+	}
+
+	return nil
+}
