@@ -21,3 +21,9 @@ type LoginResponse struct {
 type ForgotRequest struct {
 	Email string `json:"email" binding:"required,email"`
 }
+
+//Check OTP
+type CheckOTPRequest struct {
+	OTP string	`json:"otp" binding:"required,min=6,max=6"`
+	Email string `json:"email" binding:"required,email"`
+}

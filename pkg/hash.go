@@ -127,7 +127,7 @@ func (c *ConfigHash) Compare(password string, hash string) (string, error) {
 	newkey := argon2.IDKey([]byte(password), salt, c.time, c.memory, c.parallelism, c.keyLength)
 
 	if subtle.ConstantTimeCompare(key, newkey) == 0 {
-		return "", msgerr.ChangePassword
+		return "", msgerr.ErrInvalidInput
 	}
 	return c.CompleteHash(newkey, salt), nil
 }

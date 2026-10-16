@@ -20,5 +20,6 @@ func AuthRouter(router *gin.Engine, pool *pgxpool.Pool, redis *redis.Client) {
 	auth.POST("register", ac.RegisterAC)
 	auth.POST("login", ac.LoginAC)
 	auth.POST("forgot", ac.ForgotPasswordAC)
+	auth.POST("check-otp", ac.CheckOTP)
 	auth.DELETE("logout", middleware.AuthMiddleware(redis), ac.LogoutAC)
 }
