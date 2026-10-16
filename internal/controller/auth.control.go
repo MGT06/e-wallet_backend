@@ -237,6 +237,7 @@ func (ac *AuthContorller) LogoutAC(c *gin.Context) {
 // @Accept			json
 // @Produce			json
 // @Router			/auth/check-otp		[post]
+// @Param			body	body 		dto.CheckOTPRequest 	true 	"user"
 // @Success			200		{object}	dto.ResponseSuccess
 // @Success			400		{object}	dto.ResponseSuccess
 // @Success			401		{object}	dto.ResponseSuccess
