@@ -270,3 +270,80 @@ func (uc *UserContorller) DeletProfileUC(c *gin.Context) {
 		Message: "deleted photo profile succcess",
 	})
 }
+
+// Change password
+//
+// @Summary			Change password
+// @Description		Change password user
+// @Tags			User
+// @Accept			json
+// @Produce			json
+// @Security		Bearer
+// @Router			/user/password	[patch]
+// @Param			body	body 		dto.UserChangePasswordRequest true "Body data change password"
+// @Success			200		{object}	dto.ResponseSuccess
+// @Failure			400		{object}	dto.ResponseError
+// @Failure			500		{object}	dto.ResponseError
+func (uc *UserContorller) ChangePasswordUC(c *gin.Context) {
+	res, exist := c.Get("ID")
+	if !exist {
+		log.Printf("[UserContorller.DeletProfileUC] Error get token from redis")
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	userID, ok := res.(int64)
+	if !ok {
+		log.Printf("[UserContorller.DeletProfileUC] Error change to string")
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	var body dto.UserChangePasswordRequest
+	if err := c.ShouldBindWith(&body, binding.JSON); err != nil {
+		log.Printf("[AuthHandler.Register] ShouldBindWith: %v\n", err)
+		found, isErr := errors.AsType[validator.ValidationErrors](err)
+		if isErr {
+			err := utils.ValidationError(found)
+			c.JSON(http.StatusBadRequest, dto.ResponseError{
+				Success: false,
+				Message: err,
+			})
+			return
+		}
+
+		c.JSON(http.StatusBadRequest, dto.ResponseError{
+			Success: false,
+			Message: "invalid request payload",
+		})
+		return
+	}
+
+	err := uc.us.ChangePasswordUS(c.Request.Context(), userID, body)
+	if err != nil {
+		if errors.Is(err, msgerr.ErrNoRowAffected) || errors.Is(err, msgerr.ErrUserNotExist) {
+			c.JSON(http.StatusBadRequest, dto.ResponseError{
+				Success: false,
+				Message: err.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.ResponseSuccess{
+		Success: true,
+		Message: "change password succesfully",
+	})
+}
