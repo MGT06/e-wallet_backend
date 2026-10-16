@@ -141,3 +141,56 @@ func (ur *UserRepo) DeletePhotoProfileUR(ctx context.Context, userID int64) erro
 
 	return nil
 }
+
+func (ur *UserRepo) ChangePasswordUR(ctx context.Context, userID int64, password string) error {
+	query := `
+        UPDATE accounts
+        SET 
+            password = $1
+        WHERE id = $2
+    `
+	args := []any{userID, password}
+
+	tag, err := ur.db.Exec(ctx, query, args...)
+	if err != nil {
+		log.Printf("[UserRepo.ChangePasswordUR] Exec : %s", err)
+		var repoErr *pgconn.PgError
+		if errors.As(err, &repoErr) {
+			code, msg := repoErr.Code, repoErr.ConstraintName
+			log.Printf("code : %s\nmessage : %s", code, msg)
+			if code == "23505" && msg == "accounts_id_key" {
+				log.Printf("code : %s\nmessage : %s cek", code, msg)
+				return msgerr.ErrUserNotExist
+			}
+		}
+		return err
+	}
+
+	if tag.RowsAffected() == 0 {
+		log.Printf("[UserRepo.DeletePhotoProfileUR] RowsAffected : %s", err)
+		return msgerr.ErrNoRowAffected
+	}
+
+	return nil
+
+}
+
+func (ar *UserRepo) GetUserUR(c context.Context, userID int64) (string, error) {
+	query := `
+        SELECT
+            password
+        FROM accounts
+        WHERE id = $1
+    `
+	var user string
+	err := ar.db.QueryRow(c, query, userID).Scan(
+		&user,
+	)
+
+	if err != nil {
+		log.Printf("[UserRepo.GetUserUR] QueryRow : %s", err)
+		return "", msgerr.ErrUserNotExist
+	}
+
+	return user, nil
+}
