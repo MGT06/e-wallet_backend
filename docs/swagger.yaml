@@ -1,0 +1,334 @@
+basePath: /
+definitions:
+  dto.CheckOTPRequest:
+    properties:
+      email:
+        type: string
+      otp:
+        maxLength: 6
+        minLength: 6
+        type: string
+    required:
+    - email
+    - otp
+    type: object
+  dto.ForgotRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  dto.LoginRequest:
+    properties:
+      email:
+        example: almarufhidayat99@gmail.com
+        type: string
+      password:
+        example: Admin@1234
+        minLength: 8
+        type: string
+    required:
+    - email
+    type: object
+  dto.RegisterRequest:
+    properties:
+      email:
+        example: almarufhidayat99@gmail.com
+        type: string
+      name:
+        example: Alma'ruf Hidayat
+        type: string
+      password:
+        example: Admin@1234
+        minLength: 8
+        type: string
+    required:
+    - email
+    type: object
+  dto.ResponseError:
+    properties:
+      data: {}
+      message:
+        example: failed
+        type: string
+      success:
+        example: false
+        type: boolean
+    type: object
+  dto.ResponseSuccess:
+    properties:
+      data: {}
+      message:
+        example: success
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  dto.UserChangeProfileResponse:
+    properties:
+      email:
+        type: string
+      image_url:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+    type: object
+host: localhost:5000
+info:
+  contact: {}
+  description: This is a sample send request use API.
+  title: Application E-Walet
+  version: "1.0"
+paths:
+  /auth/check-otp:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: user
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CheckOTPRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ResponseSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseSuccess'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ResponseSuccess'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      summary: Check OTP user
+      tags:
+      - Auth
+  /auth/forgot:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: email user
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ForgotRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ResponseSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      summary: Validation email for reset password
+      tags:
+      - Auth
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Log in for get full access
+      parameters:
+      - description: Body data to access ewalet
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ResponseSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      summary: Log In
+      tags:
+      - Auth
+  /auth/logout:
+    delete:
+      description: Log out for delete access user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ResponseSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - Bearer: []
+      summary: Log out
+      tags:
+      - Auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Create new account for full access
+      parameters:
+      - description: Body data new user
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ResponseSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      summary: Create New Account
+      tags:
+      - Auth
+  /user/info:
+    get:
+      description: Get user info
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ResponseSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - Bearer: []
+      summary: User info
+      tags:
+      - User
+  /user/profile:
+    get:
+      description: Get user profile
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ResponseSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - Bearer: []
+      summary: User profile
+      tags:
+      - User
+    patch:
+      consumes:
+      - multipart/form-data
+      description: Update user profile details including name, phone, email, and profile
+        picture
+      parameters:
+      - description: Full Name
+        example: '"Alma''ruf Hidayat"'
+        in: formData
+        name: name
+        type: string
+      - description: Phone Number
+        example: '"081973779380"'
+        in: formData
+        name: phone
+        type: string
+      - description: Email Address
+        example: '"almarufhidayat99@gmail.com"'
+        in: formData
+        name: email
+        type: string
+      - description: Profile Picture (.jpg, .jpeg, .png, max 2MB)
+        in: formData
+        name: image
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.ResponseSuccess'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.UserChangeProfileResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - Bearer: []
+      summary: Change user profile
+      tags:
+      - User
+securityDefinitions:
+  Bearer:
+    description: Bearer Token used as identity for accessing backend
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
