@@ -15,3 +15,9 @@ type Account struct {
 	CreatedAt time.Time  `db:"created_at"`
 	UpdatedAt time.Time  `db:"updated_at"`
 }
+
+type LoginMDL struct {
+	ID       int64  `db:"id"`
+	Password string `db:"password"`
+	IsHasPin bool   `db:"is_has_pin"`
+}

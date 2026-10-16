@@ -14,7 +14,8 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	Token string `json:"token"`
+	Token    string `json:"token"`
+	IsHasPin bool   `json:"is_has_pin"`
 }
 
 // Forgot
@@ -22,8 +23,8 @@ type ForgotRequest struct {
 	Email string `json:"email" binding:"required,email"`
 }
 
-//Check OTP
+// Check OTP
 type CheckOTPRequest struct {
-	OTP string	`json:"otp" binding:"required,min=6,max=6"`
+	OTP   string `json:"otp" binding:"required,min=6,max=6"`
 	Email string `json:"email" binding:"required,email"`
 }

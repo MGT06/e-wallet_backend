@@ -83,7 +83,8 @@ func (as *AuthService) LoginAS(c context.Context, body dto.LoginRequest) (*dto.L
 	}
 
 	return &dto.LoginResponse{
-		Token: token,
+		Token:    token,
+		IsHasPin: user.IsHasPin,
 	}, nil
 }
 
