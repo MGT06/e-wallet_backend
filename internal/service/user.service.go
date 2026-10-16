@@ -165,3 +165,16 @@ func (us *UserService) ChangePasswordUS(ctx context.Context, userID int64, body 
 	}
 	return nil
 }
+
+func (us *UserService) SetPinUS(ctx context.Context, idUser int64, pin string) error {
+	pinhash, err := us.conf.HashPassword(pin)
+	if err != nil {
+		return err
+	}
+
+	if err := us.ur.SetPinUR(ctx, pinhash, idUser); err != nil {
+		return err 
+	}
+
+	return nil
+}
