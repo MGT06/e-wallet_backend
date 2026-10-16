@@ -21,3 +21,11 @@ type LoginMDL struct {
 	Password string `db:"password"`
 	IsHasPin bool   `db:"is_has_pin"`
 }
+
+type FindPeopleMDL struct {
+	ID        int64   `db:"id"`
+	Fullname  string  `db:"fullname"`
+	ImageURL  *string `db:"image_url"`
+	Phone     *string `db:"phone"`
+	IsFavorit bool    `db:"is_favorite"`
+}
