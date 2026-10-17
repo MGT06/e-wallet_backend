@@ -347,3 +347,70 @@ func (uc *UserContorller) ChangePasswordUC(c *gin.Context) {
 		Message: "change password succesfully",
 	})
 }
+
+// Set Pin
+//
+// @Summary			Set Pin User
+// @Tags			User
+// @Accept			json
+// @Produce			json
+// @Security		Bearer
+// @Router			/user/set-pin		[post]
+// @Param			body	body 		dto.SetPinRequest true	"pin user"
+// @Success			204		{object}	dto.ResponseSuccess
+// @Failure			400		{object}	dto.ResponseError
+// @Failure			500		{object}	dto.ResponseError
+func (uc *UserContorller) SetPinUC(c *gin.Context) {
+	res, exist := c.Get("ID")
+	if !exist {
+		log.Printf("[UserContorller.DeletProfileUC] Error get token from redis")
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	userID, ok := res.(int64)
+	if !ok {
+		log.Printf("[UserContorller.DeletProfileUC] Error change to string")
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	var body dto.SetPinRequest
+	if err := c.ShouldBindWith(&body, binding.JSON); err != nil {
+		log.Println(err)
+		found, isErr := errors.AsType[validator.ValidationErrors](err)
+		if isErr {
+			err := utils.ValidationError(found)
+			c.JSON(http.StatusBadRequest, dto.ResponseError{
+				Success: false,
+				Message: err,
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	if err := uc.us.SetPinUS(c.Request.Context(), userID, body.Pin); err != nil {
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	c.JSON(http.StatusNoContent, dto.ResponseSuccess{
+		Success: true,
+		Message: "Set Pin Succesfully",
+	})
+}

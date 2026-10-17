@@ -194,3 +194,19 @@ func (ur *UserRepo) GetUserUR(c context.Context, userID int64) (string, error) {
 
 	return user, nil
 }
+
+func (ur *UserRepo) SetPinUR(c context.Context, pin string, idUser int64) error {
+	query := "UPDATE accounts SET pin = $1 WHERE id = $2"
+	args := []any{pin, idUser}
+
+	tag, err := ur.db.Exec(c, query, args...)
+	if err != nil {
+		return err
+	}
+
+	if tag.RowsAffected() == 0 {
+		return msgerr.ErrNoRowAffected
+	}
+
+	return nil
+}

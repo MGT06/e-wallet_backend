@@ -91,3 +91,19 @@ func (ar *AuthRepo) ForgotPasswordAR(c context.Context, email string) (string, e
 
 	return user.Email, nil
 }
+
+func (ar *AuthRepo) ResetPassword(c context.Context, password, email string) error {
+	query := "UPDATE accounts SET password = $1 WHERE email = $2"
+	args := []any{password, email}
+
+	tag, err := ar.db.Exec(c, query, args...)
+	if err != nil {
+		return err
+	}
+
+	if tag.RowsAffected() == 0 {
+		return msgerr.ErrNoRowAffected
+	}
+
+	return nil
+}

@@ -28,3 +28,10 @@ type CheckOTPRequest struct {
 	OTP   string `json:"otp" binding:"required,min=6,max=6"`
 	Email string `json:"email" binding:"required,email"`
 }
+
+// Reset Password
+type ResetPassRequest struct {
+	Email       string `json:"email" binding:"required,email"`
+	NewPassword string `json:"new_password" binding:"required,min=8"`
+}
+
