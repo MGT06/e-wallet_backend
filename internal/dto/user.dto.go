@@ -47,3 +47,7 @@ type PaymentMethodResponse struct {
 	IconURL    *string `db:"icon_url"`
 	TaxPercent float64 `db:"tax_percent"`
 }
+
+type DeletePhotoProfileResponse struct {
+	ImageURL *string `json:"image_url"`
+}

@@ -34,16 +34,9 @@ func (us *UserService) GetUserHeaderUS(c context.Context, userID int64) (*dto.Us
 		return nil, err
 	}
 
-	var url string
-	if user.ImageURL != nil {
-		url = fmt.Sprintf("%s/%v", os.Getenv("PROFILE_URL"), *user.ImageURL)
-	} else {
-		url = ""
-	}
-
 	return &dto.UserHeaderResponse{
 		Fullname: user.Fullname,
-		ImageURL: &url,
+		ImageURL: user.ImageURL,
 	}, nil
 }
 
@@ -53,16 +46,9 @@ func (us *UserService) GetUserProfileUS(c context.Context, userID int64) (*dto.U
 		return nil, err
 	}
 
-	var url string
-	if user.ImageURL != nil {
-		url = fmt.Sprintf("%s/%v", os.Getenv("PROFILE_URL"), *user.ImageURL)
-	} else {
-		url = ""
-	}
-
 	return &dto.UserProfileResponse{
 		Fullname: user.Fullname,
-		ImageURL: &url,
+		ImageURL: user.ImageURL,
 		Phone:    user.Phone,
 		Email:    user.Email,
 	}, nil
@@ -138,26 +124,19 @@ func (us *UserService) ChangeProfileUS(ctx context.Context, userID int64, body d
 		return nil, err
 	}
 
-	var url string
-	if profile.ImageURL != nil {
-		url = fmt.Sprintf("%s/%v", os.Getenv("PROFILE_URL"), *profile.ImageURL)
-	} else {
-		url = ""
-	}
-
 	return &dto.UserChangeProfileResponse{
 		Fullname: profile.Fullname,
-		ImageURL: &url,
+		ImageURL: profile.ImageURL,
 		Phone:    profile.Phone,
 		Email:    profile.Email,
 	}, nil
 }
 
-func (us *UserService) DeletePhotoProfileUS(ctx context.Context, userID int64) error {
+func (us *UserService) DeletePhotoProfileUS(ctx context.Context, userID int64) (*dto.DeletePhotoProfileResponse, error) {
 	oldUser, err := us.ur.GetUserHeaderUR(ctx, userID)
 
 	if *oldUser.ImageURL == "" {
-		return msgerr.ErrImgNotFound
+		return nil, msgerr.ErrImgNotFound
 	}
 
 	oldFilePath := filepath.Join("public", "photo_profiles", filepath.Base(*oldUser.ImageURL))
@@ -167,9 +146,11 @@ func (us *UserService) DeletePhotoProfileUS(ctx context.Context, userID int64) e
 
 	err = us.ur.DeletePhotoProfileUR(ctx, userID)
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	return nil
+	return &dto.DeletePhotoProfileResponse{
+		ImageURL: new(string),
+	}, nil
 }
 
 func (us *UserService) ChangePasswordUS(ctx context.Context, userID int64, body dto.UserChangePasswordRequest) error {

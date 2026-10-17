@@ -18,4 +18,5 @@ func TransactionRouter(router *gin.Engine, pool *pgxpool.Pool, redis *redis.Clie
 	transaction := router.Group("transaction")
 
 	transaction.GET("people", middleware.AuthMiddleware(redis), tc.FindPeopleUC)
+	transaction.GET("topup-methode", middleware.AuthMiddleware(redis), tc.PaymentMethodeTC)
 }

@@ -9,14 +9,12 @@ type FindAllPeople struct {
 }
 
 type FindAllPeopleResponse struct {
-	TotalData int64           `json:"total_data"`
-	SisaData  int64           `json:"sisa_data"`
-	Data      []FindAllPeople `json:"data"`
+	Data []FindAllPeople `json:"data"`
 }
 
 type FindAllPeopleRequest struct {
 	Fullname string `form:"-"`
 	Phone    string `form:"-"`
 	Search   string `form:"search"`
-	Limit    string `form:"limit"`
+	Limit    int    `form:"limit"`
 }
