@@ -36,7 +36,7 @@ func (us *UserService) GetUserHeaderUS(c context.Context, userID int64) (*dto.Us
 
 	var url string
 	if user.ImageURL != nil {
-		url = fmt.Sprintf("/%s/%v", os.Getenv("PROFILE_URL"), *user.ImageURL)
+		url = fmt.Sprintf("%s/%v", os.Getenv("PROFILE_URL"), *user.ImageURL)
 	} else {
 		url = ""
 	}
@@ -48,14 +48,14 @@ func (us *UserService) GetUserHeaderUS(c context.Context, userID int64) (*dto.Us
 }
 
 func (us *UserService) GetUserProfileUS(c context.Context, userID int64) (*dto.UserProfileResponse, error) {
-	user, err := us.ur.GetUserHeaderUR(c, userID)
+	user, err := us.ur.GetUserProfileUR(c, userID)
 	if err != nil {
 		return nil, err
 	}
 
 	var url string
 	if user.ImageURL != nil {
-		url = fmt.Sprintf("/%s/%v", os.Getenv("PROFILE_URL"), *user.ImageURL)
+		url = fmt.Sprintf("%s/%v", os.Getenv("PROFILE_URL"), *user.ImageURL)
 	} else {
 		url = ""
 	}
@@ -140,7 +140,7 @@ func (us *UserService) ChangeProfileUS(ctx context.Context, userID int64, body d
 
 	var url string
 	if profile.ImageURL != nil {
-		url = fmt.Sprintf("/%s/%v", os.Getenv("PROFILE_URL"), *profile.ImageURL)
+		url = fmt.Sprintf("%s/%v", os.Getenv("PROFILE_URL"), *profile.ImageURL)
 	} else {
 		url = ""
 	}
@@ -156,7 +156,7 @@ func (us *UserService) ChangeProfileUS(ctx context.Context, userID int64, body d
 func (us *UserService) DeletePhotoProfileUS(ctx context.Context, userID int64) error {
 	oldUser, err := us.ur.GetUserHeaderUR(ctx, userID)
 
-	if oldUser.ImageURL != nil {
+	if *oldUser.ImageURL == "" {
 		return msgerr.ErrImgNotFound
 	}
 
