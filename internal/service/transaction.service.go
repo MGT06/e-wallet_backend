@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"fmt"
+	"os"
 	"unicode"
 
 	"github.com/MGT06/e-wallet_backend/internal/dto"
@@ -50,10 +52,16 @@ func (ts *TransactionService) FindPeopleTS(ctx context.Context, userID int64, qu
 	var data int64
 	for _, u := range *res {
 		data = u.SisaData
+		var url string
+		if u.ImageURL != nil {
+			url = fmt.Sprintf("/%s/%v", os.Getenv("PROFILE_URL"), *u.ImageURL)
+		} else {
+			url = ""
+		}
 		users = append(users, dto.FindAllPeople{
 			ID:       u.ID,
 			Fullname: u.Fullname,
-			ImageURL: u.ImageURL,
+			ImageURL: &url,
 			Phone:    u.Phone,
 		})
 	}
