@@ -2,8 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
-	"os"
 	"unicode"
 
 	"github.com/MGT06/e-wallet_backend/internal/dto"
@@ -21,6 +19,9 @@ func NewTransactionService(tr *repository.TransactionRepo) *TransactionService {
 }
 
 func (ts *TransactionService) FindPeopleTS(c context.Context, userID int64, query dto.FindAllPeopleRequest) (*dto.FindAllPeopleResponse, error) {
+	if query.Limit <= 0 {
+		query.Limit = 10
+	}
 	var isByName bool
 	if query.Search == "" {
 		isByName = false
@@ -49,31 +50,17 @@ func (ts *TransactionService) FindPeopleTS(c context.Context, userID int64, quer
 	}
 
 	users := make([]dto.FindAllPeople, 0, len(*res))
-	var data int64
 	for _, u := range *res {
-		data = u.SisaData
-		var url string
-		if u.ImageURL != nil {
-			url = fmt.Sprintf("/%s/%v", os.Getenv("PROFILE_URL"), *u.ImageURL)
-		} else {
-			url = ""
-		}
 		users = append(users, dto.FindAllPeople{
 			ID:       u.ID,
 			Fullname: u.Fullname,
-			ImageURL: &url,
+			ImageURL: u.ImageURL,
 			Phone:    u.Phone,
 		})
 	}
 
-	if query.Limit == "" {
-		data = 0
-	}
-
 	return &dto.FindAllPeopleResponse{
-		TotalData: int64(len(users)),
-		SisaData:  data,
-		Data:      users,
+		Data: users,
 	}, nil
 }
 
@@ -83,7 +70,6 @@ func (ts *TransactionService) PaymentMethodeTS(c context.Context) (*[]dto.Paymen
 		return nil, err
 	}
 
-	fmt.Printf("\n\n[TransactionRepo.PaymentMethodeTR] : %d\n\n", len(*res))
 	payments := make([]dto.PaymentMethodResponse, 0, len(*res))
 	for _, p := range *res {
 		payment := dto.PaymentMethodResponse{
@@ -96,6 +82,5 @@ func (ts *TransactionService) PaymentMethodeTS(c context.Context) (*[]dto.Paymen
 		}
 		payments = append(payments, payment)
 	}
-	fmt.Printf("\n\n[TransactionService.PaymentMethodeTS] : %d\n\n", len(payments))
 	return &payments, nil
 }

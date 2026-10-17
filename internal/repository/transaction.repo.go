@@ -31,7 +31,6 @@ func (tr *TransactionRepo) FindPeopleTR(c context.Context, userID int64, body dt
         a.fullname,
         a.phone,
         a.image_url,
-    	(COUNT(*) OVER() - 1) AS sisa_data,
         (f.favorite_account_id IS NOT NULL) AS isFavorit
     FROM accounts a
     LEFT JOIN favorites f 
@@ -53,19 +52,18 @@ func (tr *TransactionRepo) FindPeopleTR(c context.Context, userID int64, body dt
 		args = append(args, "%"+body.Fullname+"%")
 		paramIndex += 1
 	} else if hasPhone {
-		fmt.Fprintf(&query, " AND LOWER(a.phone) LIKE LOWER($%d)", paramIndex)
+		fmt.Fprintf(&query, " AND a.phone LIKE ($%d)", paramIndex)
 		args = append(args, "%"+body.Phone+"%")
 		paramIndex += 1
 	}
 
-	if body.Limit != "" {
+	if body.Limit >= 0 {
 		fmt.Fprintf(&query, " LIMIT $%d", paramIndex)
 		args = append(args, body.Limit)
+		paramIndex += 1
 	}
 
 	finalQuery := query.String()
-
-	fmt.Printf("\n\nHasil Query : %v\n", finalQuery)
 
 	rows, err := tr.db.Query(c, finalQuery, args...)
 	if err != nil {
@@ -86,7 +84,6 @@ func (tr *TransactionRepo) FindPeopleTR(c context.Context, userID int64, body dt
 			&user.Fullname,
 			&user.Phone,
 			&user.ImageURL,
-			&user.SisaData,
 			&user.IsFavorit,
 		)
 		if err != nil {
