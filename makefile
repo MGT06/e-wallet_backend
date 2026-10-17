@@ -27,7 +27,7 @@ up:
 	make logs
 
 down:
-	docker compose -f deployment/docker-compose.yml down
+	docker compose -f deployment/docker-compose.yml down --rmi local
 
 reset:
 	make down
