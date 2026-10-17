@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 
+	"github.com/MGT06/e-wallet_backend/docs"
 	"github.com/MGT06/e-wallet_backend/internal/config"
 	"github.com/MGT06/e-wallet_backend/internal/router"
 	"github.com/gin-gonic/gin"
@@ -13,7 +15,7 @@ import (
 // @version         			1.0
 // @description     			This is a sample send request use API.
 
-// @host      					192.168.0.186:5000
+// @host      					192.168.0.186:5001
 // @BasePath  					/
 
 // @securityDefinitions.apikey	Bearer
@@ -23,6 +25,7 @@ import (
 func main() {
 	// ENV
 	conf := config.LoadEnv()
+	docs.SwaggerInfo.Host = fmt.Sprintf("%s:%s", os.Getenv("HOST_SWAGG"), os.Getenv("PORT_SWAGG"))
 
 	// Redis
 	redis := conf.REDIS.Connect()

@@ -6,4 +6,11 @@ tmp/
 docker-compose.yml
 *.conf
 deployment/
+
+
 db/ddl.sql
+docs/*
+public/photo_profiles/*
+FILE/
+.gitignore
+Dockerfile
