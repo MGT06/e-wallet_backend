@@ -46,7 +46,7 @@ func (ur *UserRepo) GetUserHeaderUR(c context.Context, userID int64) (*models.Ac
 
 func (ur *UserRepo) GetUserProfileUR(c context.Context, userID int64) (*models.Account, error) {
 	query := `
-        SELECT ,
+        SELECT
             fullname, 
             image_url, 
             phone, 

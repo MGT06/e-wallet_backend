@@ -33,20 +33,36 @@ func (us *UserService) GetUserHeaderUS(c context.Context, userID int64) (*dto.Us
 	if err != nil {
 		return nil, err
 	}
+
+	var url string
+	if user.ImageURL != nil {
+		url = fmt.Sprintf("%s/%v", os.Getenv("PROFILE_URL"), *user.ImageURL)
+	} else {
+		url = ""
+	}
+
 	return &dto.UserHeaderResponse{
 		Fullname: user.Fullname,
-		ImageURL: user.ImageURL,
+		ImageURL: &url,
 	}, nil
 }
 
 func (us *UserService) GetUserProfileUS(c context.Context, userID int64) (*dto.UserProfileResponse, error) {
-	user, err := us.ur.GetUserHeaderUR(c, userID)
+	user, err := us.ur.GetUserProfileUR(c, userID)
 	if err != nil {
 		return nil, err
 	}
+
+	var url string
+	if user.ImageURL != nil {
+		url = fmt.Sprintf("%s/%v", os.Getenv("PROFILE_URL"), *user.ImageURL)
+	} else {
+		url = ""
+	}
+
 	return &dto.UserProfileResponse{
 		Fullname: user.Fullname,
-		ImageURL: user.ImageURL,
+		ImageURL: &url,
 		Phone:    user.Phone,
 		Email:    user.Email,
 	}, nil
@@ -122,9 +138,16 @@ func (us *UserService) ChangeProfileUS(ctx context.Context, userID int64, body d
 		return nil, err
 	}
 
+	var url string
+	if profile.ImageURL != nil {
+		url = fmt.Sprintf("%s/%v", os.Getenv("PROFILE_URL"), *profile.ImageURL)
+	} else {
+		url = ""
+	}
+
 	return &dto.UserChangeProfileResponse{
 		Fullname: profile.Fullname,
-		ImageURL: profile.ImageURL,
+		ImageURL: &url,
 		Phone:    profile.Phone,
 		Email:    profile.Email,
 	}, nil
@@ -132,6 +155,11 @@ func (us *UserService) ChangeProfileUS(ctx context.Context, userID int64, body d
 
 func (us *UserService) DeletePhotoProfileUS(ctx context.Context, userID int64) error {
 	oldUser, err := us.ur.GetUserHeaderUR(ctx, userID)
+
+	if *oldUser.ImageURL == "" {
+		return msgerr.ErrImgNotFound
+	}
+
 	oldFilePath := filepath.Join("public", "photo_profiles", filepath.Base(*oldUser.ImageURL))
 	if err := os.Remove(oldFilePath); err != nil && !os.IsNotExist(err) {
 		log.Printf("[DeletePhotoProfileUS.RemoveOldFile] : %s", err.Error())
@@ -173,7 +201,7 @@ func (us *UserService) SetPinUS(ctx context.Context, idUser int64, pin string) e
 	}
 
 	if err := us.ur.SetPinUR(ctx, pinhash, idUser); err != nil {
-		return err 
+		return err
 	}
 
 	return nil

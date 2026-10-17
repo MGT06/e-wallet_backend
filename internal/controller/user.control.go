@@ -250,7 +250,7 @@ func (uc *UserContorller) DeletProfileUC(c *gin.Context) {
 
 	err := uc.us.DeletePhotoProfileUS(c.Request.Context(), userID)
 	if err != nil {
-		if errors.Is(err, msgerr.ErrNoRowAffected) {
+		if errors.Is(err, msgerr.ErrNoRowAffected) || errors.Is(err, msgerr.ErrImgNotFound) {
 			c.JSON(http.StatusBadRequest, dto.ResponseError{
 				Success: false,
 				Message: err.Error(),

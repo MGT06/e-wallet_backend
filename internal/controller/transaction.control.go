@@ -27,6 +27,7 @@ func NewTransactionContorller(ts *service.TransactionService) *TransactionContor
 // @Accept       	json
 // @Produce      	json
 // @Param        	search  query     string  false  "search people"
+// @Param        	limit   query     string  false  "limit get data"
 // @Security     	Bearer
 // @Router			/transaction/people		[get]
 // @Success			200		{object}	dto.ResponseSuccess

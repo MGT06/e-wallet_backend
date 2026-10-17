@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"fmt"
+	"os"
 	"unicode"
 
 	"github.com/MGT06/e-wallet_backend/internal/dto"
@@ -18,7 +20,7 @@ func NewTransactionService(tr *repository.TransactionRepo) *TransactionService {
 	}
 }
 
-func (ts *TransactionService) FindPeopleTS(ctx context.Context, tserID int64, query dto.FindAllPeopleRequest) (*[]dto.FindAllPeopleResponse, error) {
+func (ts *TransactionService) FindPeopleTS(ctx context.Context, userID int64, query dto.FindAllPeopleRequest) (*dto.FindAllPeopleResponse, error) {
 	var isByName bool
 	if query.Search == "" {
 		isByName = false
@@ -41,20 +43,36 @@ func (ts *TransactionService) FindPeopleTS(ctx context.Context, tserID int64, qu
 		query.Phone = query.Search
 	}
 
-	res, err := ts.tr.FindPeopleUR(ctx, tserID, query)
+	res, err := ts.tr.FindPeopleTR(ctx, userID, query)
 	if err != nil {
 		return nil, err
 	}
 
-	tsers := make([]dto.FindAllPeopleResponse, 0, len(*res))
+	users := make([]dto.FindAllPeople, 0, len(*res))
+	var data int64
 	for _, u := range *res {
-		tsers = append(tsers, dto.FindAllPeopleResponse{
+		data = u.SisaData
+		var url string
+		if u.ImageURL != nil {
+			url = fmt.Sprintf("/%s/%v", os.Getenv("PROFILE_URL"), *u.ImageURL)
+		} else {
+			url = ""
+		}
+		users = append(users, dto.FindAllPeople{
 			ID:       u.ID,
 			Fullname: u.Fullname,
-			ImageURL: u.ImageURL,
+			ImageURL: &url,
 			Phone:    u.Phone,
 		})
 	}
 
-	return &tsers, nil
+	if query.Limit == "" {
+		data = 0
+	}
+
+	return &dto.FindAllPeopleResponse{
+		TotalData: int64(len(users)),
+		SisaData:  data,
+		Data:      users,
+	}, nil
 }
