@@ -23,21 +23,21 @@ func NewTransactionRepo(db *pgxpool.Pool) *TransactionRepo {
 	}
 }
 
-func (tr *TransactionRepo) FindPeopleUR(c context.Context, userID int64, body dto.FindAllPeopleRequest) (*[]models.FindPeopleMDL, error) {
-	var queryBuilder strings.Builder
-	queryBuilder.WriteString(`
-		SELECT 
-			a.id,
-			a.fullname,
-			a.phone,
-			a.image_url,
-			(f.favorite_account_id IS NOT NULL) AS isFavorit
-		FROM accounts a
-		LEFT JOIN favorites f 
-			ON f.favorite_account_id = a.id 
-			AND f.account_id = $1
-		WHERE a.id != $1
-	`)
+func (tr *TransactionRepo) FindPeopleTR(c context.Context, userID int64, body dto.FindAllPeopleRequest) (*[]models.FindPeopleMDL, error) {
+	var query strings.Builder
+	fmt.Fprintf(&query, `
+    SELECT 
+        a.id,
+        a.fullname,
+        a.phone,
+        a.image_url,
+    	(COUNT(*) OVER() - 1) AS sisa_data,
+        (f.favorite_account_id IS NOT NULL) AS isFavorit
+    FROM accounts a
+    LEFT JOIN favorites f 
+        ON f.favorite_account_id = a.id 
+        AND f.account_id = $%d
+    WHERE a.id != $%d`, 1, 1)
 
 	args := []any{userID}
 	paramIndex := 2
@@ -45,23 +45,29 @@ func (tr *TransactionRepo) FindPeopleUR(c context.Context, userID int64, body dt
 	hasFullname := body.Fullname != ""
 	hasPhone := body.Phone != ""
 
-	fmt.Printf("\n\nKondisi Fullname : %v\n", hasFullname)
-	fmt.Printf("Kondisi Phone : %v", hasPhone)
-
 	if hasFullname && hasPhone {
-		queryBuilder.WriteString(fmt.Sprintf(" AND LOWER(a.fullname) LIKE LOWER($%d) AND LOWER(a.phone) LIKE LOWER($%d)", paramIndex, paramIndex+1))
+		fmt.Fprintf(&query, " AND LOWER(a.fullname) LIKE LOWER($%d) AND LOWER(a.phone) LIKE LOWER($%d)", paramIndex, paramIndex+1)
 		args = append(args, "%"+body.Fullname+"%", "%"+body.Phone+"%")
 	} else if hasFullname {
-		queryBuilder.WriteString(fmt.Sprintf(" AND LOWER(a.fullname) LIKE LOWER($%d)", paramIndex))
+		fmt.Fprintf(&query, " AND LOWER(a.fullname) LIKE LOWER($%d)", paramIndex)
 		args = append(args, "%"+body.Fullname+"%")
+		paramIndex += 1
 	} else if hasPhone {
-		queryBuilder.WriteString(fmt.Sprintf(" AND LOWER(a.phone) LIKE LOWER($%d)", paramIndex))
+		fmt.Fprintf(&query, " AND LOWER(a.phone) LIKE LOWER($%d)", paramIndex)
 		args = append(args, "%"+body.Phone+"%")
+		paramIndex += 1
 	}
 
-	fmt.Printf("\n\nHasil Query : %v", &queryBuilder)
+	if body.Limit != "" {
+		fmt.Fprintf(&query, " LIMIT $%d", paramIndex)
+		args = append(args, body.Limit)
+	}
 
-	rows, err := tr.db.Query(c, queryBuilder.String(), args...)
+	finalQuery := query.String()
+
+	fmt.Printf("\n\nHasil Query : %v\n", finalQuery)
+
+	rows, err := tr.db.Query(c, finalQuery, args...)
 	if err != nil {
 		log.Printf("[UserRepo.FindPeopleUR] Query : %s", err.Error())
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -80,6 +86,7 @@ func (tr *TransactionRepo) FindPeopleUR(c context.Context, userID int64, body dt
 			&user.Fullname,
 			&user.Phone,
 			&user.ImageURL,
+			&user.SisaData,
 			&user.IsFavorit,
 		)
 		if err != nil {
