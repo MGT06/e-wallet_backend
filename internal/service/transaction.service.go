@@ -20,7 +20,7 @@ func NewTransactionService(tr *repository.TransactionRepo) *TransactionService {
 	}
 }
 
-func (ts *TransactionService) FindPeopleTS(ctx context.Context, userID int64, query dto.FindAllPeopleRequest) (*dto.FindAllPeopleResponse, error) {
+func (ts *TransactionService) FindPeopleTS(c context.Context, userID int64, query dto.FindAllPeopleRequest) (*dto.FindAllPeopleResponse, error) {
 	var isByName bool
 	if query.Search == "" {
 		isByName = false
@@ -43,7 +43,7 @@ func (ts *TransactionService) FindPeopleTS(ctx context.Context, userID int64, qu
 		query.Phone = query.Search
 	}
 
-	res, err := ts.tr.FindPeopleTR(ctx, userID, query)
+	res, err := ts.tr.FindPeopleTR(c, userID, query)
 	if err != nil {
 		return nil, err
 	}
@@ -75,4 +75,27 @@ func (ts *TransactionService) FindPeopleTS(ctx context.Context, userID int64, qu
 		SisaData:  data,
 		Data:      users,
 	}, nil
+}
+
+func (ts *TransactionService) PaymentMethodeTS(c context.Context) (*[]dto.PaymentMethodResponse, error) {
+	res, err := ts.tr.PaymentMethodeTR(c)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Printf("\n\n[TransactionRepo.PaymentMethodeTR] : %d\n\n", len(*res))
+	payments := make([]dto.PaymentMethodResponse, 0, len(*res))
+	for _, p := range *res {
+		payment := dto.PaymentMethodResponse{
+			ID:         p.ID,
+			Name:       p.Name,
+			Type:       p.Type,
+			XenditCode: p.XenditCode,
+			IconURL:    p.IconURL,
+			TaxPercent: p.TaxPercent,
+		}
+		payments = append(payments, payment)
+	}
+	fmt.Printf("\n\n[TransactionService.PaymentMethodeTS] : %d\n\n", len(payments))
+	return &payments, nil
 }
