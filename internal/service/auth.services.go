@@ -52,8 +52,8 @@ func (as *AuthService) RegisterAS(c context.Context, body dto.RegisterRequest) (
 
 func (as *AuthService) LoginAS(c context.Context, body dto.LoginRequest) (*dto.LoginResponse, error) {
 
-	if len(body.Email) == 0 || len(body.Password) <= 8 {
-		return nil, msgerr.ErrBodyEmpty
+	if len(body.Email) == 0 || len(body.Password) < 8 {
+		return nil, msgerr.ErrEmailNotExist
 	}
 
 	user, err := as.ar.GetUserByEmail(c, body)
