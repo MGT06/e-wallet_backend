@@ -153,11 +153,11 @@ func (us *UserService) ChangeProfileUS(ctx context.Context, userID int64, body d
 	}, nil
 }
 
-func (us *UserService) DeletePhotoProfileUS(ctx context.Context, userID int64) error {
+func (us *UserService) DeletePhotoProfileUS(ctx context.Context, userID int64) (*dto.DeletePhotoProfileResponse, error) {
 	oldUser, err := us.ur.GetUserHeaderUR(ctx, userID)
 
 	if *oldUser.ImageURL == "" {
-		return msgerr.ErrImgNotFound
+		return nil, msgerr.ErrImgNotFound
 	}
 
 	oldFilePath := filepath.Join("public", "photo_profiles", filepath.Base(*oldUser.ImageURL))
@@ -167,9 +167,11 @@ func (us *UserService) DeletePhotoProfileUS(ctx context.Context, userID int64) e
 
 	err = us.ur.DeletePhotoProfileUR(ctx, userID)
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	return nil
+	return &dto.DeletePhotoProfileResponse{
+		ImageURL: new(string),
+	}, nil
 }
 
 func (us *UserService) ChangePasswordUS(ctx context.Context, userID int64, body dto.UserChangePasswordRequest) error {

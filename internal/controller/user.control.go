@@ -248,7 +248,7 @@ func (uc *UserContorller) DeletProfileUC(c *gin.Context) {
 		return
 	}
 
-	err := uc.us.DeletePhotoProfileUS(c.Request.Context(), userID)
+	res, err := uc.us.DeletePhotoProfileUS(c.Request.Context(), userID)
 	if err != nil {
 		if errors.Is(err, msgerr.ErrNoRowAffected) || errors.Is(err, msgerr.ErrImgNotFound) {
 			c.JSON(http.StatusBadRequest, dto.ResponseError{
@@ -268,6 +268,7 @@ func (uc *UserContorller) DeletProfileUC(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.ResponseSuccess{
 		Success: true,
 		Message: "deleted photo profile succcess",
+		Data:    res,
 	})
 }
 
