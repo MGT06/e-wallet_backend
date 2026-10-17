@@ -28,4 +28,5 @@ type FindPeopleMDL struct {
 	ImageURL  *string `db:"image_url"`
 	Phone     *string `db:"phone"`
 	IsFavorit bool    `db:"is_favorite"`
+	SisaData  int64   `db:"sisa_data"`
 }
