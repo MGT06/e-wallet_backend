@@ -69,7 +69,7 @@ func (tr *TransactionRepo) FindPeopleTR(c context.Context, userID int64, body dt
 
 	rows, err := tr.db.Query(c, finalQuery, args...)
 	if err != nil {
-		log.Printf("[UserRepo.FindPeopleUR] Query : %s", err.Error())
+		log.Printf("[TransactionRepo.FindPeopleUR] Query : %s", err.Error())
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, nil
 		}
@@ -99,4 +99,40 @@ func (tr *TransactionRepo) FindPeopleTR(c context.Context, userID int64, body dt
 		return nil, err
 	}
 	return &users, nil
+}
+
+func (tr *TransactionRepo) PaymentMethodeTR(c context.Context) (*[]models.PaymentMethodMDL, error) {
+	query := `
+		SELECT id, name, type, xendit_code, icon_url, tax_percent
+		FROM payment_methods
+	`
+	rows, err := tr.db.Query(c, query)
+	if err != nil {
+		log.Printf("[TransactionRepo.PaymentMethodeTR] Query : %s", err.Error())
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	defer rows.Close()
+
+	payments := make([]models.PaymentMethodMDL, 0)
+
+	for rows.Next() {
+		var payment models.PaymentMethodMDL
+		err := rows.Scan(
+			&payment.ID,
+			&payment.Name,
+			&payment.Type,
+			&payment.XenditCode,
+			&payment.IconURL,
+			&payment.TaxPercent,
+		)
+		if err != nil {
+			log.Printf("[TransactionRepo.PaymentMethodeTR] Scan : %s", err.Error())
+			return nil, err
+		}
+		payments = append(payments, payment)
+	}
+	return &payments, nil
 }

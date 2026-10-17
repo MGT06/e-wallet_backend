@@ -34,16 +34,9 @@ func (us *UserService) GetUserHeaderUS(c context.Context, userID int64) (*dto.Us
 		return nil, err
 	}
 
-	var url string
-	if user.ImageURL != nil {
-		url = fmt.Sprintf("%s/%v", os.Getenv("PROFILE_URL"), *user.ImageURL)
-	} else {
-		url = ""
-	}
-
 	return &dto.UserHeaderResponse{
 		Fullname: user.Fullname,
-		ImageURL: &url,
+		ImageURL: user.ImageURL,
 	}, nil
 }
 
@@ -53,16 +46,9 @@ func (us *UserService) GetUserProfileUS(c context.Context, userID int64) (*dto.U
 		return nil, err
 	}
 
-	var url string
-	if user.ImageURL != nil {
-		url = fmt.Sprintf("%s/%v", os.Getenv("PROFILE_URL"), *user.ImageURL)
-	} else {
-		url = ""
-	}
-
 	return &dto.UserProfileResponse{
 		Fullname: user.Fullname,
-		ImageURL: &url,
+		ImageURL: user.ImageURL,
 		Phone:    user.Phone,
 		Email:    user.Email,
 	}, nil
@@ -138,16 +124,9 @@ func (us *UserService) ChangeProfileUS(ctx context.Context, userID int64, body d
 		return nil, err
 	}
 
-	var url string
-	if profile.ImageURL != nil {
-		url = fmt.Sprintf("%s/%v", os.Getenv("PROFILE_URL"), *profile.ImageURL)
-	} else {
-		url = ""
-	}
-
 	return &dto.UserChangeProfileResponse{
 		Fullname: profile.Fullname,
-		ImageURL: &url,
+		ImageURL: profile.ImageURL,
 		Phone:    profile.Phone,
 		Email:    profile.Email,
 	}, nil
