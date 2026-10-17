@@ -31,7 +31,7 @@ func NewAuthService(AuthRepo *repository.AuthRepo, redis *redis.Client) *AuthSer
 
 func (as *AuthService) RegisterAS(c context.Context, body dto.RegisterRequest) (err error) {
 
-	if len(body.Email) == 0 || len(body.Name) == 0 || len(body.Password) <= 8 {
+	if len(body.Email) == 0 || len(body.Name) == 0 || len(body.Password) < 8 {
 		return msgerr.ErrBodyEmpty
 	}
 
