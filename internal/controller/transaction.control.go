@@ -85,7 +85,7 @@ func (tc *TransactionContorller) FindPeopleUC(c *gin.Context) {
 //
 // @Summary			Get payments methode
 // @Description		Get payments methode
-// @Tags			User
+// @Tags			Transaction
 // @Produce			json
 // @Security		Bearer
 // @Router			/transaction/topup-methode	[get]
