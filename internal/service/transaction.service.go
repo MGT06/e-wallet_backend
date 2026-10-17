@@ -18,7 +18,7 @@ func NewTransactionService(tr *repository.TransactionRepo) *TransactionService {
 	}
 }
 
-func (ts *TransactionService) FindPeopleTS(ctx context.Context, tserID int64, query dto.FindAllPeopleRequest) (*[]dto.FindAllPeopleResponse, error) {
+func (ts *TransactionService) FindPeopleTS(ctx context.Context, userID int64, query dto.FindAllPeopleRequest) (*dto.FindAllPeopleResponse, error) {
 	var isByName bool
 	if query.Search == "" {
 		isByName = false
@@ -41,14 +41,16 @@ func (ts *TransactionService) FindPeopleTS(ctx context.Context, tserID int64, qu
 		query.Phone = query.Search
 	}
 
-	res, err := ts.tr.FindPeopleUR(ctx, tserID, query)
+	res, err := ts.tr.FindPeopleTR(ctx, userID, query)
 	if err != nil {
 		return nil, err
 	}
 
-	tsers := make([]dto.FindAllPeopleResponse, 0, len(*res))
+	users := make([]dto.FindAllPeople, 0, len(*res))
+	var data int64
 	for _, u := range *res {
-		tsers = append(tsers, dto.FindAllPeopleResponse{
+		data = u.SisaData
+		users = append(users, dto.FindAllPeople{
 			ID:       u.ID,
 			Fullname: u.Fullname,
 			ImageURL: u.ImageURL,
@@ -56,5 +58,13 @@ func (ts *TransactionService) FindPeopleTS(ctx context.Context, tserID int64, qu
 		})
 	}
 
-	return &tsers, nil
+	if query.Limit == "" {
+		data = 0
+	}
+
+	return &dto.FindAllPeopleResponse{
+		TotalData: int64(len(users)),
+		SisaData:  data,
+		Data:      users,
+	}, nil
 }
