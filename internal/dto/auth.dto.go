@@ -4,7 +4,7 @@ package dto
 type RegisterRequest struct {
 	Name     string `json:"name" example:"Alma'ruf Hidayat"`
 	Email    string `json:"email" binding:"required,email" example:"almarufhidayat99@gmail.com"`
-	Password string `json:"password" binding:"min=8" example:"Admin@1234"`
+	Password string `json:"password" binding:"min=7" example:"Admin@1234"`
 }
 
 // Login
@@ -34,4 +34,3 @@ type ResetPassRequest struct {
 	Email       string `json:"email" binding:"required,email"`
 	NewPassword string `json:"new_password" binding:"required,min=8"`
 }
-
