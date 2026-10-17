@@ -80,3 +80,31 @@ func (tc *TransactionContorller) FindPeopleUC(c *gin.Context) {
 		"data":    users,
 	})
 }
+
+// Get payments methode
+//
+// @Summary			Get payments methode
+// @Description		Get payments methode
+// @Tags			User
+// @Produce			json
+// @Security		Bearer
+// @Router			/transaction/topup-methode	[get]
+// @Success			200		{object}	dto.ResponseSuccess
+// @Failure			400		{object}	dto.ResponseError
+// @Failure			500		{object}	dto.ResponseError
+func (tc *TransactionContorller) PaymentMethodeTC(c *gin.Context) {
+	methode, err := tc.ts.PaymentMethodeTS(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.ResponseSuccess{
+		Success: true,
+		Message: "get payment methode success",
+		Data:    methode,
+	})
+}
