@@ -3,6 +3,6 @@ CREATE TABLE webhook_events (
   event_id VARCHAR(100) UNIQUE NOT NULL,
   event_status VARCHAR(30) UNIQUE,
   payload JSONB NOT NULL,
-  processed_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT (now())
+  CONSTRAINT uq_webhook UNIQUE (event_id, event_status);
 );
