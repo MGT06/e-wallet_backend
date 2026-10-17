@@ -23,59 +23,6 @@ func NewTransactionRepo(db *pgxpool.Pool) *TransactionRepo {
 	}
 }
 
-// func (tr *TransactionRepo) FindPeopleUR(c context.Context, userID int64, body dto.FindAllPeopleRequest) (*[]models.FindPeopleMDL, error) {
-// 	query := `
-// SELECT
-//     a.id,
-//     a.fullname,
-//     a.phone,
-//     a.image_url,
-//     (f.favorite_account_id IS NOT NULL) AS isFavorit
-// FROM accounts a
-// LEFT JOIN favorites f
-//     ON f.favorite_account_id = a.id
-//     AND f.account_id = $1
-// WHERE a.id != $1
-//     AND (
-//         LOWER(a.fullname) LIKE LOWER('%' || $2 || '%')
-//         OR LOWER(a.phone) LIKE LOWER('%' || $3 || '%')
-//     )
-//     `
-
-// 	args := []any{userID, body.Fullname, body.Phone}
-// 	rows, err := tr.db.Query(c, query, args...)
-// 	if err != nil {
-// 		log.Printf("[UserRepo.FindPeopleAR] Query : %s", err.Error())
-// 		if errors.Is(err, pgx.ErrNoRows) {
-// 			return nil, nil
-// 		}
-// 		return nil, err
-// 	}
-// 	defer rows.Close()
-
-// 	users := make([]models.FindPeopleMDL, 0)
-
-// 	for rows.Next() {
-// 		var user models.FindPeopleMDL
-// 		err := rows.Scan(
-// 			&user.ID,
-// 			&user.Fullname,
-// 			&user.Phone,
-// 			&user.ImageURL,
-// 			&user.IsFavorit,
-// 		)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		users = append(users, user)
-// 	}
-
-// 	if err := rows.Err(); err != nil {
-// 		return nil, err
-// 	}
-// 	return &users, nil
-// }
-
 func (tr *TransactionRepo) FindPeopleUR(c context.Context, userID int64, body dto.FindAllPeopleRequest) (*[]models.FindPeopleMDL, error) {
 	var queryBuilder strings.Builder
 	queryBuilder.WriteString(`
