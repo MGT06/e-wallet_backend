@@ -41,10 +41,21 @@ definitions:
         type: string
       password:
         example: Admin@1234
+        minLength: 7
+        type: string
+    required:
+    - email
+    type: object
+  dto.ResetPassRequest:
+    properties:
+      email:
+        type: string
+      new_password:
         minLength: 8
         type: string
     required:
     - email
+    - new_password
     type: object
   dto.ResponseError:
     properties:
@@ -66,6 +77,26 @@ definitions:
         example: true
         type: boolean
     type: object
+  dto.SetPinRequest:
+    properties:
+      pin:
+        maxLength: 6
+        minLength: 6
+        type: string
+    required:
+    - pin
+    type: object
+  dto.UserChangePasswordRequest:
+    properties:
+      new_password:
+        example: Admin@1234
+        minLength: 8
+        type: string
+      old_password:
+        example: Admin@1234
+        minLength: 8
+        type: string
+    type: object
   dto.UserChangeProfileResponse:
     properties:
       email:
@@ -77,7 +108,7 @@ definitions:
       phone:
         type: string
     type: object
-host: localhost:5000
+host: 192.168.0.186:5001
 info:
   contact: {}
   description: This is a sample send request use API.
@@ -229,6 +260,119 @@ paths:
       summary: Create New Account
       tags:
       - Auth
+  /auth/reset-password:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: email and new password user
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ResetPassRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/dto.ResponseSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseSuccess'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      summary: Reset Password User
+      tags:
+      - Auth
+  /transaction/people:
+    get:
+      consumes:
+      - application/json
+      description: Get all users active
+      parameters:
+      - description: search people
+        in: query
+        name: search
+        type: string
+      - description: limit get data
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ResponseSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - Bearer: []
+      summary: Find people
+      tags:
+      - Transaction
+  /transaction/topup-methode:
+    get:
+      description: Get payments methode
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ResponseSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - Bearer: []
+      summary: Get payments methode
+      tags:
+      - User
+  /user/image:
+    delete:
+      description: Delete foto profile
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ResponseSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - Bearer: []
+      summary: Delete photo profile
+      tags:
+      - User
   /user/info:
     get:
       description: Get user info
@@ -250,6 +394,38 @@ paths:
       security:
       - Bearer: []
       summary: User info
+      tags:
+      - User
+  /user/password:
+    patch:
+      consumes:
+      - application/json
+      description: Change password user
+      parameters:
+      - description: Body data change password
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UserChangePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ResponseSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - Bearer: []
+      summary: Change password
       tags:
       - User
   /user/profile:
@@ -323,6 +499,37 @@ paths:
       security:
       - Bearer: []
       summary: Change user profile
+      tags:
+      - User
+  /user/set-pin:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: pin user
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SetPinRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/dto.ResponseSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - Bearer: []
+      summary: Set Pin User
       tags:
       - User
 securityDefinitions:
