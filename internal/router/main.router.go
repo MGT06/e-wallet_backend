@@ -22,4 +22,5 @@ func Router(router *gin.Engine, pool *pgxpool.Pool, redis *redis.Client) {
 	StatusServer(router)
 	AuthRouter(router, pool, redis)
 	UserRouter(router, pool, redis)
+	TransactionRouter(router, pool, redis)
 }
