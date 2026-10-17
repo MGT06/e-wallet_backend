@@ -27,7 +27,7 @@ func NewTransactionContorller(ts *service.TransactionService) *TransactionContor
 // @Accept       	json
 // @Produce      	json
 // @Param        	search  query     string  false  "search people"
-// @Param        	limit   query     string  false  "limit get data"
+// @Param        	limit   query     int  	  false  "limit get data"
 // @Security     	Bearer
 // @Router			/transaction/people		[get]
 // @Success			200		{object}	dto.ResponseSuccess
@@ -78,5 +78,33 @@ func (tc *TransactionContorller) FindPeopleUC(c *gin.Context) {
 		"status":  true,
 		"message": "success get people list",
 		"data":    users,
+	})
+}
+
+// Get payments methode
+//
+// @Summary			Get payments methode
+// @Description		Get payments methode
+// @Tags			Transaction
+// @Produce			json
+// @Security		Bearer
+// @Router			/transaction/topup-methode	[get]
+// @Success			200		{object}	dto.ResponseSuccess
+// @Failure			400		{object}	dto.ResponseError
+// @Failure			500		{object}	dto.ResponseError
+func (tc *TransactionContorller) PaymentMethodeTC(c *gin.Context) {
+	methode, err := tc.ts.PaymentMethodeTS(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.ResponseSuccess{
+		Success: true,
+		Message: "get payment methode success",
+		Data:    methode,
 	})
 }

@@ -2,8 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
-	"os"
 	"unicode"
 
 	"github.com/MGT06/e-wallet_backend/internal/dto"
@@ -20,7 +18,10 @@ func NewTransactionService(tr *repository.TransactionRepo) *TransactionService {
 	}
 }
 
-func (ts *TransactionService) FindPeopleTS(ctx context.Context, userID int64, query dto.FindAllPeopleRequest) (*dto.FindAllPeopleResponse, error) {
+func (ts *TransactionService) FindPeopleTS(c context.Context, userID int64, query dto.FindAllPeopleRequest) (*dto.FindAllPeopleResponse, error) {
+	if query.Limit <= 0 {
+		query.Limit = 10
+	}
 	var isByName bool
 	if query.Search == "" {
 		isByName = false
@@ -43,36 +44,43 @@ func (ts *TransactionService) FindPeopleTS(ctx context.Context, userID int64, qu
 		query.Phone = query.Search
 	}
 
-	res, err := ts.tr.FindPeopleTR(ctx, userID, query)
+	res, err := ts.tr.FindPeopleTR(c, userID, query)
 	if err != nil {
 		return nil, err
 	}
 
 	users := make([]dto.FindAllPeople, 0, len(*res))
-	var data int64
 	for _, u := range *res {
-		data = u.SisaData
-		var url string
-		if u.ImageURL != nil {
-			url = fmt.Sprintf("/%s/%v", os.Getenv("PROFILE_URL"), *u.ImageURL)
-		} else {
-			url = ""
-		}
 		users = append(users, dto.FindAllPeople{
 			ID:       u.ID,
 			Fullname: u.Fullname,
-			ImageURL: &url,
+			ImageURL: u.ImageURL,
 			Phone:    u.Phone,
 		})
 	}
 
-	if query.Limit == "" {
-		data = 0
+	return &dto.FindAllPeopleResponse{
+		Data: users,
+	}, nil
+}
+
+func (ts *TransactionService) PaymentMethodeTS(c context.Context) (*[]dto.PaymentMethodResponse, error) {
+	res, err := ts.tr.PaymentMethodeTR(c)
+	if err != nil {
+		return nil, err
 	}
 
-	return &dto.FindAllPeopleResponse{
-		TotalData: int64(len(users)),
-		SisaData:  data,
-		Data:      users,
-	}, nil
+	payments := make([]dto.PaymentMethodResponse, 0, len(*res))
+	for _, p := range *res {
+		payment := dto.PaymentMethodResponse{
+			ID:         p.ID,
+			Name:       p.Name,
+			Type:       p.Type,
+			XenditCode: p.XenditCode,
+			IconURL:    p.IconURL,
+			TaxPercent: p.TaxPercent,
+		}
+		payments = append(payments, payment)
+	}
+	return &payments, nil
 }

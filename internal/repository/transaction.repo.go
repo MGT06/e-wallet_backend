@@ -31,7 +31,6 @@ func (tr *TransactionRepo) FindPeopleTR(c context.Context, userID int64, body dt
         a.fullname,
         a.phone,
         a.image_url,
-    	(COUNT(*) OVER() - 1) AS sisa_data,
         (f.favorite_account_id IS NOT NULL) AS isFavorit
     FROM accounts a
     LEFT JOIN favorites f 
@@ -53,23 +52,22 @@ func (tr *TransactionRepo) FindPeopleTR(c context.Context, userID int64, body dt
 		args = append(args, "%"+body.Fullname+"%")
 		paramIndex += 1
 	} else if hasPhone {
-		fmt.Fprintf(&query, " AND LOWER(a.phone) LIKE LOWER($%d)", paramIndex)
+		fmt.Fprintf(&query, " AND a.phone LIKE ($%d)", paramIndex)
 		args = append(args, "%"+body.Phone+"%")
 		paramIndex += 1
 	}
 
-	if body.Limit != "" {
+	if body.Limit >= 0 {
 		fmt.Fprintf(&query, " LIMIT $%d", paramIndex)
 		args = append(args, body.Limit)
+		paramIndex += 1
 	}
 
 	finalQuery := query.String()
 
-	fmt.Printf("\n\nHasil Query : %v\n", finalQuery)
-
 	rows, err := tr.db.Query(c, finalQuery, args...)
 	if err != nil {
-		log.Printf("[UserRepo.FindPeopleUR] Query : %s", err.Error())
+		log.Printf("[TransactionRepo.FindPeopleUR] Query : %s", err.Error())
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, nil
 		}
@@ -86,7 +84,6 @@ func (tr *TransactionRepo) FindPeopleTR(c context.Context, userID int64, body dt
 			&user.Fullname,
 			&user.Phone,
 			&user.ImageURL,
-			&user.SisaData,
 			&user.IsFavorit,
 		)
 		if err != nil {
@@ -99,4 +96,40 @@ func (tr *TransactionRepo) FindPeopleTR(c context.Context, userID int64, body dt
 		return nil, err
 	}
 	return &users, nil
+}
+
+func (tr *TransactionRepo) PaymentMethodeTR(c context.Context) (*[]models.PaymentMethodMDL, error) {
+	query := `
+		SELECT id, name, type, xendit_code, icon_url, tax_percent
+		FROM payment_methods
+	`
+	rows, err := tr.db.Query(c, query)
+	if err != nil {
+		log.Printf("[TransactionRepo.PaymentMethodeTR] Query : %s", err.Error())
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	defer rows.Close()
+
+	payments := make([]models.PaymentMethodMDL, 0)
+
+	for rows.Next() {
+		var payment models.PaymentMethodMDL
+		err := rows.Scan(
+			&payment.ID,
+			&payment.Name,
+			&payment.Type,
+			&payment.XenditCode,
+			&payment.IconURL,
+			&payment.TaxPercent,
+		)
+		if err != nil {
+			log.Printf("[TransactionRepo.PaymentMethodeTR] Scan : %s", err.Error())
+			return nil, err
+		}
+		payments = append(payments, payment)
+	}
+	return &payments, nil
 }
