@@ -171,7 +171,7 @@ func (as *AuthService) ResetPassword(c context.Context, body dto.ResetPassReques
 	}
 
 	if err := as.ar.ResetPassword(c, newPassword, body.Email); err != nil {
-		return	err
+		return err
 	}
 
 	return nil
