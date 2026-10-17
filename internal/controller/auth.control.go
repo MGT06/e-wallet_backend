@@ -69,6 +69,14 @@ func (ac *AuthContorller) RegisterAC(c *gin.Context) {
 			return
 		}
 
+		if errors.Is(err, msgerr.ErrBodyEmpty) {
+			c.JSON(http.StatusBadRequest, dto.ResponseError{
+				Success: false,
+				Message: "Invalid input data",
+			})
+			return
+		}
+
 		if errors.Is(err, msgerr.ErrEmailExist) {
 			c.JSON(http.StatusConflict, dto.ResponseError{
 				Success: false,
@@ -107,7 +115,7 @@ func (ac *AuthContorller) LoginAC(c *gin.Context) {
 		log.Printf("[AuthContorller.LoginAC] Bind error: %v\n", err.Error())
 		c.JSON(http.StatusBadRequest, dto.ResponseError{
 			Success: false,
-			Message: "invalid request payload",
+			Message: msgerr.ErrEmailNotExist.Error(),
 		})
 		return
 	}
