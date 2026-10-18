@@ -65,8 +65,3 @@ type ChangePinRequest struct {
 type CheckPinRequest struct {
 	OldPin string `json:"pin" binding:"required,len=6,numeric" example:"123456"`
 }
-
-type ToggleFavoriteResponse struct {
-	IsFavorite string `json:"is_favorit"`
-	UserProfileResponse
-}
