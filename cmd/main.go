@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	_ "github.com/MGT06/e-wallet_backend/docs"
 	"github.com/MGT06/e-wallet_backend/internal/config"
 	"github.com/MGT06/e-wallet_backend/internal/router"
 	"github.com/gin-gonic/gin"
