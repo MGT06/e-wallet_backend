@@ -22,3 +22,8 @@ var ErrTooManyRequests = errors.New("too many requests")
 var ErrInvalidOTP = errors.New("invalid or expired otp")
 var ErrInvalidToken = errors.New("invalid or expired token")
 var ErrTooManyAttempts = errors.New("too many attempts")
+
+
+var ErrSelfTransfer        = errors.New("cannot transfer to your own account")
+var ErrReceiverNotFound    = errors.New("receiver not found")
+var ErrInsufficientBalance = errors.New("insufficient balance")

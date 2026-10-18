@@ -12,8 +12,8 @@ import (
 )
 
 func TransactionRouter(router *gin.Engine, pool *pgxpool.Pool, redis *redis.Client, resty *resty.Client) {
-	tr := repository.NewTransactionRepo(pool)
-	ts := service.NewTransactionService(tr, resty)
+	tr := repository.NewTransactionRepo()
+	ts := service.NewTransactionService(tr, resty, pool)
 	tc := controller.NewTransactionContorller(ts)
 
 	transaction := router.Group("transaction")
@@ -21,4 +21,5 @@ func TransactionRouter(router *gin.Engine, pool *pgxpool.Pool, redis *redis.Clie
 	transaction.GET("people", middleware.AuthMiddleware(redis), tc.FindPeopleUC)
 	transaction.GET("topup-methode", middleware.AuthMiddleware(redis), tc.PaymentMethodeTC)
 	transaction.POST("topup", middleware.AuthMiddleware(redis), tc.TopupsUC)
+	transaction.POST("transfer", middleware.AuthMiddleware(redis), tc.TransferUC)
 }

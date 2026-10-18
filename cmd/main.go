@@ -17,7 +17,7 @@ import (
 // @version         			1.0
 // @description     			This is a sample send request use API.
 
-// @host      					192.168.0.186:5001
+// @host      					localhost:5000
 // @BasePath  					/
 
 // @securityDefinitions.apikey	Bearer

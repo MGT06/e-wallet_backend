@@ -14,3 +14,16 @@ type Transfer struct {
 	Status      string    `db:"status" json:"status"`
 	CreatedAt   time.Time `db:"created_at" json:"created_at"`
 }
+
+type Recipient struct {
+	ID       int64
+	Fullname string
+	ImageURL *string
+	Phone    *string
+}
+
+type TransferDetail struct {
+	Transfer
+	Sender   Recipient
+	Receiver Recipient
+}

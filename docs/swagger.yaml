@@ -123,6 +123,19 @@ definitions:
       xendit_code:
         type: string
     type: object
+  dto.TransferRequest:
+    properties:
+      amount:
+        type: integer
+      notes:
+        maxLength: 255
+        type: string
+      receiver_id:
+        type: integer
+    required:
+    - amount
+    - receiver_id
+    type: object
   dto.UserChangePasswordRequest:
     properties:
       new_password:
@@ -340,6 +353,10 @@ paths:
         in: query
         name: limit
         type: integer
+      - description: is_Favorite get data
+        in: query
+        name: is_favorit
+        type: boolean
       produces:
       - application/json
       responses:
@@ -372,6 +389,7 @@ paths:
       - description: amount and payment method
         in: body
         name: body
+        required: true
         schema:
           $ref: '#/definitions/dto.TopupsRequest'
       produces:
@@ -419,6 +437,44 @@ paths:
       security:
       - Bearer: []
       summary: Get payments methode
+      tags:
+      - Transaction
+  /transaction/transfer:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: amount and payment method
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/dto.TransferRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.ResponseSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - Bearer: []
+      summary: user transfer
       tags:
       - Transaction
   /user/change-pin:

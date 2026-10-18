@@ -60,3 +60,27 @@ type TopupsResponse struct {
 	PaymentURL *string    `json:"payment_url"`
 	ExpiresAt  *time.Time `json:"expires_at"`
 }
+
+type Recipient struct {
+	ID       int64   `json:"id"`
+	Fullname string  `json:"fullname"`
+	ImageURL *string `json:"image_url"`
+	Phone    *string `json:"phone"`
+}
+
+type TransferRequest struct {
+	ReceiverID int64  `json:"receiver_id" binding:"required"`
+	Amount     int64  `json:"amount" binding:"required"`
+	Notes      string `json:"notes" binding:"max=255"`
+}
+
+type TransferResponse struct {
+	ID          int64     `json:"id"`
+	ReferenceNo string    `json:"reference_no"`
+	Amount      int64     `json:"amount"`
+	Notes       *string   `json:"notes"`
+	Status      string    `json:"status"`
+	CreatedAt   time.Time `json:"created_at"`
+	Sender      Recipient `json:"sender"`
+	Receiver    Recipient `json:"receiver"`
+}

@@ -315,6 +315,12 @@ const docTemplate = `{
                         "description": "limit get data",
                         "name": "limit",
                         "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "is_Favorite get data",
+                        "name": "is_favorit",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -367,6 +373,7 @@ const docTemplate = `{
                         "description": "amount and payment method",
                         "name": "body",
                         "in": "body",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/dto.TopupsRequest"
                         }
@@ -424,6 +431,67 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/transaction/transfer": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Transaction"
+                ],
+                "summary": "user transfer",
+                "parameters": [
+                    {
+                        "description": "amount and payment method",
+                        "name": "body",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/dto.TransferRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
                         "schema": {
                             "$ref": "#/definitions/dto.ResponseError"
                         }
@@ -1124,6 +1192,25 @@ const docTemplate = `{
                 },
                 "xendit_code": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.TransferRequest": {
+            "type": "object",
+            "required": [
+                "amount",
+                "receiver_id"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "integer"
+                },
+                "notes": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "receiver_id": {
+                    "type": "integer"
                 }
             }
         },
