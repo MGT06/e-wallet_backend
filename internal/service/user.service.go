@@ -154,9 +154,9 @@ func (us *UserService) DeletePhotoProfileUS(c context.Context, userID int64) (*d
 }
 
 func (us *UserService) ChangePasswordUS(c context.Context, userID int64, body dto.UserChangePasswordRequest) error {
-	oldPassword, err := us.ur.GetUserUR(c, userID)
+	user, err := us.ur.GetUserUR(c, userID)
 
-	_, err = us.conf.Compare(body.OldPassword, oldPassword)
+	_, err = us.conf.Compare(body.OldPassword, user.Password)
 	if err != nil {
 		log.Printf("[AuthService.LoginAS] Compare %s", err)
 		return err
@@ -188,10 +188,34 @@ func (us *UserService) SetPinUS(c context.Context, idUser int64, pin string) err
 	return nil
 }
 
-func (us *UserService) AddFavoriteUS(c context.Context, userId int64, body dto.AddFavoriteRequest) (err error) {
+func (us *UserService) AddFavoriteUS(c context.Context, userID int64, body dto.AddFavoriteRequest) (err error) {
+	body.ID = userID
 	err = us.ur.AddFavoriteUR(c, body)
 	if err != nil {
 		return err
 	}
 	return
+}
+
+func (us *UserService) ChangePinUS(c context.Context, userID int64, body dto.ChangePinRequest) error {
+
+	user, err := us.ur.GetUserUR(c, userID)
+
+	_, err = us.conf.Compare(body.OldPin, *user.Pin)
+	if err != nil {
+		log.Printf("[AddFavoriteUS.Compare] : %s", err)
+		return msgerr.ErrOldPin
+	}
+
+	newPin, err := us.conf.HashPassword(body.NewPin)
+
+	if err != nil {
+		return err
+	}
+
+	err = us.ur.ChangePinUR(c, userID, newPin)
+	if err != nil {
+		return err
+	}
+	return nil
 }

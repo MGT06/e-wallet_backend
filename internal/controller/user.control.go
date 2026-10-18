@@ -356,7 +356,7 @@ func (uc *UserContorller) ChangePasswordUC(c *gin.Context) {
 // @Accept			json
 // @Produce			json
 // @Security		Bearer
-// @Router			/user/set-pin		[post]
+// @Router			/user/set-pin		[patch]
 // @Param			body	body 		dto.SetPinRequest true	"pin user"
 // @Success			204		{object}	dto.ResponseSuccess
 // @Failure			400		{object}	dto.ResponseError
@@ -487,5 +487,82 @@ func (uc *UserContorller) AddFavoriteUC(c *gin.Context) {
 	c.JSON(http.StatusNoContent, dto.ResponseSuccess{
 		Success: true,
 		Message: "add to favorite succesfully",
+	})
+}
+
+// Change Pin
+//
+// @Summary			Change Pin
+// @Description		Change pin user
+// @Tags			User
+// @Accept			json
+// @Produce			json
+// @Security		Bearer
+// @Router			/user/change-pin	[patch]
+// @Param			body	body 		dto.ChangePinRequest true "Body data change password"
+// @Success			200		{object}	dto.ResponseSuccess
+// @Failure			400		{object}	dto.ResponseError
+// @Failure			500		{object}	dto.ResponseError
+func (uc *UserContorller) ChangePinUC(c *gin.Context) {
+	res, exist := c.Get("ID")
+	if !exist {
+		log.Printf("[UserContorller.ChangePinUC] Error get token from redis")
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	userID, ok := res.(int64)
+	if !ok {
+		log.Printf("[ChangePinUC] Error change to string")
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	var body dto.ChangePinRequest
+	if err := c.ShouldBindWith(&body, binding.JSON); err != nil {
+		log.Printf("[ChangePinUC] ShouldBindWith: %v\n", err)
+		found, isErr := errors.AsType[validator.ValidationErrors](err)
+		if isErr {
+			err := utils.ValidationError(found)
+			c.JSON(http.StatusBadRequest, dto.ResponseError{
+				Success: false,
+				Message: err,
+			})
+			return
+		}
+
+		c.JSON(http.StatusBadRequest, dto.ResponseError{
+			Success: false,
+			Message: "invalid request payload",
+		})
+		return
+	}
+
+	err := uc.us.ChangePinUS(c.Request.Context(), userID, body)
+	if err != nil {
+		if errors.Is(err, msgerr.ErrOldPin) {
+			c.JSON(http.StatusBadRequest, dto.ResponseError{
+				Success: false,
+				Message: err.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.ResponseSuccess{
+		Success: true,
+		Message: "change pin succesfully",
 	})
 }

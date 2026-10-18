@@ -149,7 +149,7 @@ func (ur *UserRepo) ChangePasswordUR(c context.Context, userID int64, password s
             password = $1
         WHERE id = $2
     `
-	args := []any{userID, password}
+	args := []any{password, userID}
 
 	tag, err := ur.db.Exec(c, query, args...)
 	if err != nil {
@@ -175,24 +175,26 @@ func (ur *UserRepo) ChangePasswordUR(c context.Context, userID int64, password s
 
 }
 
-func (ur *UserRepo) GetUserUR(c context.Context, userID int64) (string, error) {
+func (ur *UserRepo) GetUserUR(c context.Context, userID int64) (*models.Account, error) {
 	query := `
         SELECT
-            password
+            password,
+			pin
         FROM accounts
         WHERE id = $1
     `
-	var user string
+	var user models.Account
 	err := ur.db.QueryRow(c, query, userID).Scan(
-		&user,
+		&user.Password,
+		&user.Pin,
 	)
 
 	if err != nil {
 		log.Printf("[UserRepo.GetUserUR] QueryRow : %s", err)
-		return "", msgerr.ErrUserNotExist
+		return nil, msgerr.ErrUserNotExist
 	}
 
-	return user, nil
+	return &user, nil
 }
 
 func (ur *UserRepo) SetPinUR(c context.Context, pin string, idUser int64) error {
@@ -238,6 +240,27 @@ func (ur *UserRepo) AddFavoriteUR(c context.Context, body dto.AddFavoriteRequest
 	}
 
 	if tag.RowsAffected() == 0 {
+		return msgerr.ErrNoRowAffected
+	}
+	return nil
+}
+
+func (ur *UserRepo) ChangePinUR(c context.Context, userId int64, pin string) error {
+	query := `
+        UPDATE accounts 
+		SET pin = $1 
+		WHERE id = $2
+    `
+	args := []any{pin, userId}
+
+	tag, err := ur.db.Exec(c, query, args...)
+	if err != nil {
+		log.Printf("[UserRepo.ChangePinUR] Exec : %s\n\n%s\n\n", err, pin)
+		return err
+	}
+
+	if tag.RowsAffected() == 0 {
+		log.Printf("[ChangePinUR.RowsAffected] : %s", err)
 		return msgerr.ErrNoRowAffected
 	}
 	return nil
