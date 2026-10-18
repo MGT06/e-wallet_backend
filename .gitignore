@@ -1,0 +1,10 @@
+.env
+.env.*
+
+.air.toml
+tmp/
+docker-compose.yml
+*.conf
+deployment/
+db/ddl.sql
+public/*
