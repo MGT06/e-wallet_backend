@@ -159,7 +159,7 @@ func (us *UserService) ChangePasswordUS(c context.Context, userID int64, body dt
 	_, err = us.conf.Compare(body.OldPassword, user.Password)
 	if err != nil {
 		log.Printf("[AuthService.LoginAS] Compare %s", err)
-		return err
+		return msgerr.ErrOldPassword
 	}
 
 	newPassword, err := us.conf.HashPassword(body.NewPassword)
@@ -218,4 +218,46 @@ func (us *UserService) ChangePinUS(c context.Context, userID int64, body dto.Cha
 		return err
 	}
 	return nil
+}
+
+func (us *UserService) HistoryTS(c context.Context, userID int64, query dto.HistoryTransactionRequest) (*dto.HistoryTransactionResponse, error) {
+	// 	if query.Limit <= 0 {
+	// 		query.Limit = 10
+	// 	}
+	// 	var isByName bool
+	// 	if query.Search == "" {
+	// 		isByName = false
+	// 	}
+
+	// 	for _, r := range query.Search {
+	// 		if unicode.IsNumber(r) {
+	// 			isByName = false
+	// 		}
+	// 		if unicode.IsLetter(r) {
+	// 			isByName = true
+	// 		} else {
+	// 			isByName = false
+	// 		}
+	// 	}
+
+	// 	if isByName {
+	// 		query.Fullname = query.Search
+	// 	} else {
+	// 		query.Phone = query.Search
+	// 	// }
+
+	// 	// res, err := us.ur.HistoryTR(c, userID, query)
+	// 	// if err != nil {
+	// 	// 	return nil, err
+	// 	// }
+
+	// 	// users := make([]dto.HistoryTransaction, 0, len(*res))
+	// 	// for _, u := range *res {
+	// 	// 	users = append(users, dto.HistoryTransaction{
+	// 	// 	})
+	// 	// }
+
+	return &dto.HistoryTransactionResponse{
+		// Data: users,
+	}, nil
 }

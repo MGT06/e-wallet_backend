@@ -328,7 +328,7 @@ func (uc *UserContorller) ChangePasswordUC(c *gin.Context) {
 
 	err := uc.us.ChangePasswordUS(c.Request.Context(), userID, body)
 	if err != nil {
-		if errors.Is(err, msgerr.ErrNoRowAffected) || errors.Is(err, msgerr.ErrUserNotExist) {
+		if errors.Is(err, msgerr.ErrNoRowAffected) || errors.Is(err, msgerr.ErrUserNotExist) || errors.Is(err, msgerr.ErrOldPassword) {
 			c.JSON(http.StatusBadRequest, dto.ResponseError{
 				Success: false,
 				Message: err.Error(),
@@ -564,5 +564,67 @@ func (uc *UserContorller) ChangePinUC(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.ResponseSuccess{
 		Success: true,
 		Message: "change pin succesfully",
+	})
+}
+
+// History
+//
+// @Summary      	History
+// @Description  	Get all history transaction
+// @Tags         	Transaction
+// @Accept       	json
+// @Produce      	json
+// @Param        	search  query     string  false  "search people"
+// @Param        	limit   query     int  	  false  "limit get data"
+// @Param        	page   query     int  	  page  "limit get data"
+// @Security     	Bearer
+// @Router			/user/history		[get]
+// @Success			200		{object}	dto.ResponseSuccess
+// @Failure			400		{object}	dto.ResponseError
+// @Failure			401		{object}	dto.ResponseError
+// @Failure			500		{object}	dto.ResponseError
+func (uc *UserContorller) HistoryUC(c *gin.Context) {
+	res, exist := c.Get("ID")
+	if !exist {
+		log.Printf("[UserContorller.FindPeopleUC] Error get token from redis")
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	userID, ok := res.(int64)
+	if !ok {
+		log.Printf("[UserContorller.FindPeopleUC] Error change to string")
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	var query dto.HistoryTransactionRequest
+	if err := c.ShouldBindQuery(&query); err != nil {
+		c.JSON(http.StatusBadRequest, dto.ResponseError{
+			Success: false,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	users, err := uc.us.HistoryTS(c.Request.Context(), userID, query)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, dto.ResponseError{
+			Success: false,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.ResponseSuccess{
+		Success: true,
+		Message: "success get hitory",
+		Data:    users,
 	})
 }
