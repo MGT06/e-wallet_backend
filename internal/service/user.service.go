@@ -54,7 +54,7 @@ func (us *UserService) GetUserProfileUS(c context.Context, userID int64) (*dto.U
 	}, nil
 }
 
-func (us *UserService) ChangeProfileUS(ctx context.Context, userID int64, body dto.UserChangeProfileRequest) (*dto.UserChangeProfileResponse, error) {
+func (us *UserService) ChangeProfileUS(c context.Context, userID int64, body dto.UserChangeProfileRequest) (*dto.UserChangeProfileResponse, error) {
 	if body.Phone != nil {
 		if strings.HasPrefix(*body.Phone, "62") {
 			*body.Phone = "0" + (*body.Phone)[2:]
@@ -80,7 +80,7 @@ func (us *UserService) ChangeProfileUS(ctx context.Context, userID int64, body d
 			return nil, msgerr.ErrImageToLarge
 		}
 
-		oldUser, err := us.ur.GetUserHeaderUR(ctx, userID)
+		oldUser, err := us.ur.GetUserHeaderUR(c, userID)
 		if err == nil && oldUser.ImageURL != nil && *oldUser.ImageURL != "" {
 			oldFilePath := filepath.Join("public", "photo_profiles", filepath.Base(*oldUser.ImageURL))
 			if err := os.Remove(oldFilePath); err != nil && !os.IsNotExist(err) {
@@ -116,7 +116,7 @@ func (us *UserService) ChangeProfileUS(ctx context.Context, userID int64, body d
 		}
 	}
 
-	profile, err := us.ur.ChangeProfileUR(ctx, userID, filename, body)
+	profile, err := us.ur.ChangeProfileUR(c, userID, filename, body)
 	if err != nil {
 		if filename != "" {
 			_ = os.Remove(filepath.Join(dirPath, filename))
@@ -132,8 +132,8 @@ func (us *UserService) ChangeProfileUS(ctx context.Context, userID int64, body d
 	}, nil
 }
 
-func (us *UserService) DeletePhotoProfileUS(ctx context.Context, userID int64) (*dto.DeletePhotoProfileResponse, error) {
-	oldUser, err := us.ur.GetUserHeaderUR(ctx, userID)
+func (us *UserService) DeletePhotoProfileUS(c context.Context, userID int64) (*dto.DeletePhotoProfileResponse, error) {
+	oldUser, err := us.ur.GetUserHeaderUR(c, userID)
 
 	if *oldUser.ImageURL == "" {
 		return nil, msgerr.ErrImgNotFound
@@ -144,7 +144,7 @@ func (us *UserService) DeletePhotoProfileUS(ctx context.Context, userID int64) (
 		log.Printf("[DeletePhotoProfileUS.RemoveOldFile] : %s", err.Error())
 	}
 
-	err = us.ur.DeletePhotoProfileUR(ctx, userID)
+	err = us.ur.DeletePhotoProfileUR(c, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -153,8 +153,8 @@ func (us *UserService) DeletePhotoProfileUS(ctx context.Context, userID int64) (
 	}, nil
 }
 
-func (us *UserService) ChangePasswordUS(ctx context.Context, userID int64, body dto.UserChangePasswordRequest) error {
-	oldPassword, err := us.ur.GetUserUR(ctx, userID)
+func (us *UserService) ChangePasswordUS(c context.Context, userID int64, body dto.UserChangePasswordRequest) error {
+	oldPassword, err := us.ur.GetUserUR(c, userID)
 
 	_, err = us.conf.Compare(body.OldPassword, oldPassword)
 	if err != nil {
@@ -168,22 +168,30 @@ func (us *UserService) ChangePasswordUS(ctx context.Context, userID int64, body 
 		return err
 	}
 
-	err = us.ur.ChangePasswordUR(ctx, userID, newPassword)
+	err = us.ur.ChangePasswordUR(c, userID, newPassword)
 	if err != nil {
 		return nil
 	}
 	return nil
 }
 
-func (us *UserService) SetPinUS(ctx context.Context, idUser int64, pin string) error {
+func (us *UserService) SetPinUS(c context.Context, idUser int64, pin string) error {
 	pinhash, err := us.conf.HashPassword(pin)
 	if err != nil {
 		return err
 	}
 
-	if err := us.ur.SetPinUR(ctx, pinhash, idUser); err != nil {
+	if err := us.ur.SetPinUR(c, pinhash, idUser); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (us *UserService) AddFavoriteUS(c context.Context, userId int64, body dto.AddFavoriteRequest) (err error) {
+	err = us.ur.AddFavoriteUR(c, body)
+	if err != nil {
+		return err
+	}
+	return
 }

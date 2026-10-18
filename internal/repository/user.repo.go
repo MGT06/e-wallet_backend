@@ -70,7 +70,7 @@ func (ur *UserRepo) GetUserProfileUR(c context.Context, userID int64) (*models.A
 	return &user, nil
 }
 
-func (ur *UserRepo) ChangeProfileUR(ctx context.Context, userID int64, image_path string, body dto.UserChangeProfileRequest) (*models.Account, error) {
+func (ur *UserRepo) ChangeProfileUR(c context.Context, userID int64, image_path string, body dto.UserChangeProfileRequest) (*models.Account, error) {
 	query := `
         UPDATE accounts
         SET 
@@ -94,7 +94,7 @@ func (ur *UserRepo) ChangeProfileUR(ctx context.Context, userID int64, image_pat
 	}
 	var profile models.Account
 	err := ur.db.QueryRow(
-		ctx,
+		c,
 		query,
 		args...,
 	).Scan(
@@ -112,14 +112,14 @@ func (ur *UserRepo) ChangeProfileUR(ctx context.Context, userID int64, image_pat
 	return &profile, nil
 }
 
-func (ur *UserRepo) DeletePhotoProfileUR(ctx context.Context, userID int64) error {
+func (ur *UserRepo) DeletePhotoProfileUR(c context.Context, userID int64) error {
 	query := `
         UPDATE accounts
         SET 
             image_url = ''
         WHERE id = $1
     `
-	tag, err := ur.db.Exec(ctx, query, userID)
+	tag, err := ur.db.Exec(c, query, userID)
 	if err != nil {
 		log.Printf("[UserRepo.DeletePhotoProfileUR] Exec : %s", err)
 		var repoErr *pgconn.PgError
@@ -142,7 +142,7 @@ func (ur *UserRepo) DeletePhotoProfileUR(ctx context.Context, userID int64) erro
 	return nil
 }
 
-func (ur *UserRepo) ChangePasswordUR(ctx context.Context, userID int64, password string) error {
+func (ur *UserRepo) ChangePasswordUR(c context.Context, userID int64, password string) error {
 	query := `
         UPDATE accounts
         SET 
@@ -151,7 +151,7 @@ func (ur *UserRepo) ChangePasswordUR(ctx context.Context, userID int64, password
     `
 	args := []any{userID, password}
 
-	tag, err := ur.db.Exec(ctx, query, args...)
+	tag, err := ur.db.Exec(c, query, args...)
 	if err != nil {
 		log.Printf("[UserRepo.ChangePasswordUR] Exec : %s", err)
 		var repoErr *pgconn.PgError
@@ -208,5 +208,37 @@ func (ur *UserRepo) SetPinUR(c context.Context, pin string, idUser int64) error 
 		return msgerr.ErrNoRowAffected
 	}
 
+	return nil
+}
+
+func (ur *UserRepo) AddFavoriteUR(c context.Context, body dto.AddFavoriteRequest) error {
+	query := `
+        INSERT INTO favorites (account_id, favorite_account_id)
+        VALUES ($1, $2)
+    `
+	args := []any{body.ID, body.FavoriteID}
+
+	tag, err := ur.db.Exec(c, query, args...)
+	if err != nil {
+		log.Printf("[UserRepo.AddFavoriteUR] Exec : %s", err)
+
+		if pgErr, ok := errors.AsType[*pgconn.PgError](err); ok {
+			if pgErr.Code == "23503" {
+				switch pgErr.ConstraintName {
+				case "favorites_account_id_fkey":
+					return msgerr.ErrUserNotExist
+				case "favorites_favorite_account_id_fkey":
+					return msgerr.ErrUSerFavNotFound
+				default:
+					return err
+				}
+			}
+		}
+		return err
+	}
+
+	if tag.RowsAffected() == 0 {
+		return msgerr.ErrNoRowAffected
+	}
 	return nil
 }

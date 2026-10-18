@@ -384,7 +384,7 @@ func (uc *UserContorller) SetPinUC(c *gin.Context) {
 
 	var body dto.SetPinRequest
 	if err := c.ShouldBindWith(&body, binding.JSON); err != nil {
-		log.Println(err)
+		log.Printf("[SetPinUC.ShouldBindWith] : %v", err)
 		found, isErr := errors.AsType[validator.ValidationErrors](err)
 		if isErr {
 			err := utils.ValidationError(found)
@@ -413,5 +413,79 @@ func (uc *UserContorller) SetPinUC(c *gin.Context) {
 	c.JSON(http.StatusNoContent, dto.ResponseSuccess{
 		Success: true,
 		Message: "Set Pin Succesfully",
+	})
+}
+
+// Add Favorite
+//
+// @Summary			Add Favoritr
+// @Tags			User
+// @Accept			json
+// @Produce			json
+// @Security		Bearer
+// @Router			/user/favorite		[post]
+// @Param			body	body 		dto.AddFavoriteRequest true	"ID Account"
+// @Success			204		{object}	dto.ResponseSuccess
+// @Failure			400		{object}	dto.ResponseError
+// @Failure			500		{object}	dto.ResponseError
+func (uc *UserContorller) AddFavoriteUC(c *gin.Context) {
+	res, exist := c.Get("ID")
+	if !exist {
+		log.Printf("[UserContorller.DeletProfileUC] Error get token from redis")
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	userID, ok := res.(int64)
+	if !ok {
+		log.Printf("[UserContorller.DeletProfileUC] Error change to string")
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	var body dto.AddFavoriteRequest
+	if err := c.ShouldBindWith(&body, binding.JSON); err != nil {
+		log.Printf("[AddFavoriteUC.ShouldBindWith] : %v", err)
+		found, isErr := errors.AsType[validator.ValidationErrors](err)
+		if isErr {
+			err := utils.ValidationError(found)
+			c.JSON(http.StatusBadRequest, dto.ResponseError{
+				Success: false,
+				Message: err,
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	if err := uc.us.AddFavoriteUS(c.Request.Context(), userID, body); err != nil {
+		if errors.Is(err, msgerr.ErrUSerFavNotFound) || errors.Is(err, msgerr.ErrUserNotExist) {
+			c.JSON(http.StatusBadRequest, dto.ResponseError{
+				Success: false,
+				Message: err.Error(),
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	c.JSON(http.StatusNoContent, dto.ResponseSuccess{
+		Success: true,
+		Message: "add to favorite succesfully",
 	})
 }
