@@ -265,3 +265,7 @@ func (ur *UserRepo) ChangePinUR(c context.Context, userId int64, pin string) err
 	}
 	return nil
 }
+
+func (ur *UserRepo) HistoryUR(c context.Context, userId int64, query dto.HistoryTransactionRequest) (*[]models.HistoryMDL, error) {
+	return nil, nil
+}

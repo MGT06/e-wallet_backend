@@ -61,3 +61,7 @@ type ChangePinRequest struct {
 	OldPin string `json:"old_pin" binding:"required,len=6,numeric" example:"123456"`
 	NewPin string `json:"new_pin" binding:"required,len=6,numeric" example:"654321"`
 }
+
+type CheckPinRequest struct {
+	OldPin string `json:"pin" binding:"required,len=6,numeric" example:"123456"`
+}

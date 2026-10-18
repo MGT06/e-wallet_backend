@@ -29,12 +29,14 @@ type HistoryTransactionRequest struct {
 }
 
 type HistoryTransaction struct {
+	ID       int64   `json:"id"`
+	Type     string  `json:"type"`
+	Amount   int64   `json:"amount"`
 	Fullname string  `json:"fullname"`
 	ImageURL *string `json:"image_url"`
 	Phone    *string `json:"phone"`
-	Amount   int64   `json:"amount"`
 }
 
 type HistoryTransactionResponse struct {
-	Data HistoryTransaction `json:"data"`
+	Data []HistoryTransaction `json:"data"`
 }

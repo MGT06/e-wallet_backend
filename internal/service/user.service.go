@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/MGT06/e-wallet_backend/internal/dto"
 	msgerr "github.com/MGT06/e-wallet_backend/internal/message"
@@ -220,44 +221,63 @@ func (us *UserService) ChangePinUS(c context.Context, userID int64, body dto.Cha
 	return nil
 }
 
+func (us *UserService) CheckPinUS(c context.Context, userID int64, body dto.CheckPinRequest) error {
+	user, err := us.ur.GetUserUR(c, userID)
+
+	_, err = us.conf.Compare(body.OldPin, *user.Pin)
+	if err != nil {
+		log.Printf("[AddFavoriteUS.Compare] : %s", err)
+		return msgerr.ErrOldPin
+	}
+	return nil
+}
+
 func (us *UserService) HistoryTS(c context.Context, userID int64, query dto.HistoryTransactionRequest) (*dto.HistoryTransactionResponse, error) {
-	// 	if query.Limit <= 0 {
-	// 		query.Limit = 10
-	// 	}
-	// 	var isByName bool
-	// 	if query.Search == "" {
-	// 		isByName = false
-	// 	}
+	if query.Limit <= 0 {
+		query.Limit = 10
+	}
+	var isByName bool
+	if query.Search == "" {
+		isByName = false
+	}
 
-	// 	for _, r := range query.Search {
-	// 		if unicode.IsNumber(r) {
-	// 			isByName = false
-	// 		}
-	// 		if unicode.IsLetter(r) {
-	// 			isByName = true
-	// 		} else {
-	// 			isByName = false
-	// 		}
-	// 	}
+	for _, r := range query.Search {
+		if unicode.IsNumber(r) {
+			isByName = false
+		}
+		if unicode.IsLetter(r) {
+			isByName = true
+		} else {
+			isByName = false
+		}
+	}
 
-	// 	if isByName {
-	// 		query.Fullname = query.Search
-	// 	} else {
-	// 		query.Phone = query.Search
-	// 	// }
+	if isByName {
+		query.Fullname = query.Search
+	} else {
+		query.Phone = query.Search
+	}
 
-	// 	// res, err := us.ur.HistoryTR(c, userID, query)
-	// 	// if err != nil {
-	// 	// 	return nil, err
-	// 	// }
+	res, err := us.ur.HistoryUR(c, userID, query)
+	if err != nil {
+		return nil, err
+	}
 
-	// 	// users := make([]dto.HistoryTransaction, 0, len(*res))
-	// 	// for _, u := range *res {
-	// 	// 	users = append(users, dto.HistoryTransaction{
-	// 	// 	})
-	// 	// }
+	historys := make([]dto.HistoryTransaction, 0, len(*res))
+	for _, u := range *res {
+		history := dto.HistoryTransaction{
+			Fullname: u.Type,
+			ImageURL: new(string),
+			Phone:    new(string),
+			Amount:   0,
+			ID:       userID,
+			Type:     "",
+		}
+		historys = append(historys, history)
+
+	}
 
 	return &dto.HistoryTransactionResponse{
-		// Data: users,
+		Data: historys,
 	}, nil
 }
