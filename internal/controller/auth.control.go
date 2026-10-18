@@ -12,7 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
-	"github.com/jackc/pgx/v5"
 )
 
 type AuthContorller struct {
@@ -168,11 +167,11 @@ func (ac *AuthContorller) ForgotPasswordAC(c *gin.Context) {
 		return
 	}
 
-	emailUser, err := ac.as.ForgotPasswordAS(c.Request.Context(), body.Email)
+	err := ac.as.ForgotPasswordAS(c.Request.Context(), body.Email)
 	if err != nil {
 		log.Println(err)
-		if errors.Is(err, pgx.ErrNoRows) {
-			c.JSON(http.StatusUnauthorized, dto.ResponseError{
+		if errors.Is(err, msgerr.ErrTooManyRequests) {
+			c.JSON(http.StatusTooManyRequests, dto.ResponseError{
 				Success: false,
 				Message: err.Error(),
 			})
@@ -187,7 +186,6 @@ func (ac *AuthContorller) ForgotPasswordAC(c *gin.Context) {
 
 	c.JSON(http.StatusOK, dto.ResponseSuccess{
 		Success: true,
-		Data:    emailUser,
 		Message: "email exists, please reset your password",
 	})
 }
@@ -245,7 +243,7 @@ func (ac *AuthContorller) LogoutAC(c *gin.Context) {
 // @Accept			json
 // @Produce			json
 // @Router			/auth/check-otp		[post]
-// @Param			body	body 		dto.CheckOTPRequest 	true 	"user"
+// @Param			body	body 		dto.CheckOTPRequest 	true 	"email and otp user"
 // @Success			200		{object}	dto.ResponseSuccess
 // @Success			400		{object}	dto.ResponseSuccess
 // @Success			401		{object}	dto.ResponseSuccess
@@ -261,7 +259,15 @@ func (ac *AuthContorller) CheckOTP(c *gin.Context) {
 		return
 	}
 
-	if err := ac.as.CheckOTP(c.Request.Context(), body.OTP, body.Email); err != nil {
+	token, err := ac.as.CheckOTP(c.Request.Context(), body.OTP, body.Email)
+	if err != nil {
+		log.Println(err)
+		if errors.Is(err, msgerr.ErrTooManyAttempts) {
+			c.JSON(http.StatusTooManyRequests, dto.ResponseError{
+				Success: false,
+				Message: err.Error(),
+			})
+		}
 		if errors.Is(err, msgerr.ErrInvalidInput) {
 			c.JSON(http.StatusUnauthorized, dto.ResponseError{
 				Success: false,
@@ -278,6 +284,7 @@ func (ac *AuthContorller) CheckOTP(c *gin.Context) {
 
 	c.JSON(http.StatusOK, dto.ResponseSuccess{
 		Success: true,
+		Data: token,
 		Message: "OTP is match, please reset your password",
 	})
 }
@@ -289,7 +296,7 @@ func (ac *AuthContorller) CheckOTP(c *gin.Context) {
 // @Accept			json
 // @Produce			json
 // @Router			/auth/reset-password	[post]
-// @Param			body	body 		dto.ResetPassRequest 	true 	"email and new password user"
+// @Param			body	body 		dto.ResetPassRequest 	true 	"token and new password user"
 // @Success			204		{object}	dto.ResponseSuccess
 // @Success			400		{object}	dto.ResponseSuccess
 // @Failure			500		{object}	dto.ResponseError
@@ -316,6 +323,12 @@ func (ac *AuthContorller) ResetPasswordAC(c *gin.Context) {
 
 	if err := ac.as.ResetPassword(c.Request.Context(), body); err != nil {
 		log.Println(err)
+		if errors.Is(err, msgerr.ErrInvalidToken) {
+			c.JSON(http.StatusUnauthorized, dto.ResponseError{
+				Success: false,
+				Message: err.Error(),
+			})
+		}
 		c.JSON(http.StatusInternalServerError, dto.ResponseError{
 			Success: false,
 			Message: "a system error has accurred",
@@ -323,7 +336,7 @@ func (ac *AuthContorller) ResetPasswordAC(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusNoContent, dto.ResponseSuccess{
+	c.JSON(http.StatusOK, dto.ResponseSuccess{
 		Success: true,
 		Message: "Succes Reset Password",
 	})
