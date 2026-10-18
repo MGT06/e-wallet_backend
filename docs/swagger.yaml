@@ -1,5 +1,22 @@
 basePath: /
 definitions:
+  dto.AddFavoriteRequest:
+    properties:
+      favorite_account_id:
+        type: integer
+    type: object
+  dto.ChangePinRequest:
+    properties:
+      new_pin:
+        example: "654321"
+        type: string
+      old_pin:
+        example: "123456"
+        type: string
+    required:
+    - new_pin
+    - old_pin
+    type: object
   dto.CheckOTPRequest:
     properties:
       email:
@@ -11,6 +28,14 @@ definitions:
     required:
     - email
     - otp
+    type: object
+  dto.CheckPinRequest:
+    properties:
+      pin:
+        example: "123456"
+        type: string
+    required:
+    - pin
     type: object
   dto.ForgotRequest:
     properties:
@@ -80,11 +105,23 @@ definitions:
   dto.SetPinRequest:
     properties:
       pin:
-        maxLength: 6
-        minLength: 6
+        example: "123456"
         type: string
     required:
     - pin
+    type: object
+  dto.TopupsRequest:
+    properties:
+      amount:
+        type: integer
+      payment_method_id:
+        type: integer
+      tax:
+        type: integer
+      total_amount:
+        type: integer
+      xendit_code:
+        type: string
     type: object
   dto.UserChangePasswordRequest:
     properties:
@@ -327,6 +364,40 @@ paths:
       summary: Find people
       tags:
       - Transaction
+  /transaction/topup:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: amount and payment method
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/dto.TopupsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ResponseSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - Bearer: []
+      summary: user topup
+      tags:
+      - Transaction
   /transaction/topup-methode:
     get:
       description: Get payments methode
@@ -349,7 +420,144 @@ paths:
       - Bearer: []
       summary: Get payments methode
       tags:
+      - Transaction
+  /user/change-pin:
+    patch:
+      consumes:
+      - application/json
+      description: Change pin user
+      parameters:
+      - description: Body data change password
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ChangePinRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ResponseSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - Bearer: []
+      summary: Change Pin
+      tags:
       - User
+  /user/check-pin:
+    post:
+      consumes:
+      - application/json
+      description: Change pin user
+      parameters:
+      - description: Body data change password
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CheckPinRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ResponseSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - Bearer: []
+      summary: Check Pin
+      tags:
+      - User
+  /user/favorite:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID Account
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AddFavoriteRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/dto.ResponseSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - Bearer: []
+      summary: Add Favorite
+      tags:
+      - User
+  /user/history:
+    get:
+      consumes:
+      - application/json
+      description: Get all history transaction
+      parameters:
+      - description: search people
+        in: query
+        name: search
+        type: string
+      - description: limit get data
+        in: query
+        name: limit
+        type: integer
+      - description: limit get data
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ResponseSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - Bearer: []
+      summary: History
+      tags:
+      - Transaction
   /user/image:
     delete:
       description: Delete foto profile

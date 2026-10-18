@@ -12,9 +12,9 @@ type Topup struct {
 	Amount          int64      `db:"amount"`
 	Tax             int64      `db:"tax"`
 	TotalAmount     int64      `db:"total_amount"`
-	XenditInvoiceID string     `db:"xendit_invoice_id"`
-	PaymentUrl      string     `db:"payment_url"`
-	ExpiresAt       string     `db:"expires_at"`
+	XenditID        *string     `db:"xendit_invoice_id"`
+	PaymentURL      *string    `db:"payment_url"`
+	ExpiresAt       *time.Time `db:"expires_at"`
 	Status          string     `db:"status"`
 	PaidAt          *time.Time `db:"paid_at"`
 	CreatedAt       time.Time  `db:"created_at"`

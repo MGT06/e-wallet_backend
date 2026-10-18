@@ -345,6 +345,61 @@ const docTemplate = `{
                 }
             }
         },
+        "/transaction/topup": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Transaction"
+                ],
+                "summary": "user topup",
+                "parameters": [
+                    {
+                        "description": "amount and payment method",
+                        "name": "body",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/dto.TopupsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
         "/transaction/topup-methode": {
             "get": {
                 "security": [
@@ -357,7 +412,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "User"
+                    "Transaction"
                 ],
                 "summary": "Get payments methode",
                 "responses": {
@@ -369,6 +424,224 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/change-pin": {
+            "patch": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Change pin user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Change Pin",
+                "parameters": [
+                    {
+                        "description": "Body data change password",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ChangePinRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/check-pin": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Change pin user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Check Pin",
+                "parameters": [
+                    {
+                        "description": "Body data change password",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CheckPinRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/favorite": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Add Favorite",
+                "parameters": [
+                    {
+                        "description": "ID Account",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.AddFavoriteRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/history": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Get all history transaction",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Transaction"
+                ],
+                "summary": "History",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "search people",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "limit get data",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "limit get data",
+                        "name": "page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/dto.ResponseError"
                         }
@@ -675,6 +948,31 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.AddFavoriteRequest": {
+            "type": "object",
+            "properties": {
+                "favorite_account_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.ChangePinRequest": {
+            "type": "object",
+            "required": [
+                "new_pin",
+                "old_pin"
+            ],
+            "properties": {
+                "new_pin": {
+                    "type": "string",
+                    "example": "654321"
+                },
+                "old_pin": {
+                    "type": "string",
+                    "example": "123456"
+                }
+            }
+        },
         "dto.CheckOTPRequest": {
             "type": "object",
             "required": [
@@ -689,6 +987,18 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 6,
                     "minLength": 6
+                }
+            }
+        },
+        "dto.CheckPinRequest": {
+            "type": "object",
+            "required": [
+                "pin"
+            ],
+            "properties": {
+                "pin": {
+                    "type": "string",
+                    "example": "123456"
                 }
             }
         },
@@ -793,8 +1103,27 @@ const docTemplate = `{
             "properties": {
                 "pin": {
                     "type": "string",
-                    "maxLength": 6,
-                    "minLength": 6
+                    "example": "123456"
+                }
+            }
+        },
+        "dto.TopupsRequest": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer"
+                },
+                "payment_method_id": {
+                    "type": "integer"
+                },
+                "tax": {
+                    "type": "integer"
+                },
+                "total_amount": {
+                    "type": "integer"
+                },
+                "xendit_code": {
+                    "type": "string"
                 }
             }
         },

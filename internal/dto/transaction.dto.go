@@ -1,5 +1,7 @@
 package dto
 
+import "time"
+
 type FindAllPeople struct {
 	ID        int64   `json:"id"`
 	Fullname  string  `json:"fullname"`
@@ -40,4 +42,17 @@ type HistoryTransaction struct {
 
 type HistoryTransactionResponse struct {
 	Data []HistoryTransaction `json:"data"`
+}
+
+type TopupsRequest struct {
+	Amount        int64  `json:"amount"`
+	TotalAmount   int64  `json:"total_amount"`
+	Tax           int64  `json:"tax"`
+	XenditCode    string `json:"xendit_code"`
+	PaymentMethod int  `json:"payment_method_id"`
+}
+
+type TopupsResponse struct {
+	PaymentURL *string    `json:"payment_url"`
+	ExpiresAt  *time.Time `json:"expires_at"`
 }
