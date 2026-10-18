@@ -3,11 +3,14 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
+	"strings"
 
 	"github.com/MGT06/e-wallet_backend/internal/dto"
 	msgerr "github.com/MGT06/e-wallet_backend/internal/message"
 	"github.com/MGT06/e-wallet_backend/internal/models"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -314,6 +317,93 @@ func (ur *UserRepo) ChangePinUR(c context.Context, userId int64, pin string) err
 	return nil
 }
 
-func (ur *UserRepo) HistoryUR(c context.Context, userId int64, query dto.HistoryTransactionRequest) (*[]models.HistoryMDL, error) {
-	return nil, nil
+func (ur *UserRepo) HistoryUR(c context.Context, userId int64, body dto.HistoryTransactionRequest) (*[]models.HistoryMDL, error) {
+	var query strings.Builder
+	fmt.Fprintf(&query, `
+		SELECT 
+			t.id AS transaction_id,
+			p.fullname AS fullname,
+			p.phone AS phone,
+			p.image_url AS image_url,
+			t.amount,
+			COUNT(tr.sender_id) OVER() AS total,
+			CASE 
+				WHEN tr.sender_id = $1 THEN 'sender'
+				WHEN tr.receiver_id = $1 THEN 'receiver'
+			END AS type
+		FROM transaction t
+		JOIN transfers tr ON t.transfer_id = tr.id
+		JOIN accounts p ON p.id = CASE 
+			WHEN tr.sender_id = $%d 
+			THEN tr.receiver_id 
+			ELSE tr.sender_id 
+		END
+		WHERE t.account_id = $%d
+		  AND t.type = 'transfer'
+		  AND t.delete_at IS NULL
+	`, 1, 1)
+	args := []any{userId}
+	paramIndex := 2
+
+	hasFullname := body.Fullname != ""
+	hasPhone := body.Phone != ""
+
+	if hasFullname {
+		fmt.Fprintf(&query, " AND LOWER(p.fullname) LIKE LOWER($%d)", paramIndex)
+		args = append(args, "%"+body.Fullname+"%")
+		paramIndex += 1
+	} else if hasPhone {
+		fmt.Fprintf(&query, " AND p.phone LIKE ($%d)", paramIndex)
+		args = append(args, "%"+body.Phone+"%")
+		paramIndex += 1
+	}
+	if body.Limit >= 0 {
+		fmt.Fprintf(&query, " LIMIT $%d", paramIndex)
+		args = append(args, body.Limit)
+		paramIndex += 1
+	}
+
+	if body.Offset >= 0 {
+		fmt.Fprintf(&query, " OFFSET $%d", paramIndex)
+		args = append(args, body.Offset)
+	}
+
+	finalQuery := query.String()
+
+	fmt.Println(finalQuery)
+
+	rows, err := ur.db.Query(c, finalQuery, args...)
+	if err != nil {
+		log.Printf("[UserRepo.HistoryUR] Query : %s", err.Error())
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	defer rows.Close()
+
+	historys := make([]models.HistoryMDL, 0)
+
+	for rows.Next() {
+		var history models.HistoryMDL
+		err := rows.Scan(
+			&history.ID,
+			&history.Fullname,
+			&history.Phone,
+			&history.ImageURL,
+			&history.Amount,
+			&history.TotalData,
+			&history.Type,
+		)
+		if err != nil {
+			return nil, err
+		}
+		historys = append(historys, history)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return &historys, nil
 }

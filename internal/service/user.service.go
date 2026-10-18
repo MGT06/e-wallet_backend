@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math"
+	"net/url"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 	"unicode"
@@ -259,26 +262,69 @@ func (us *UserService) HistoryTS(c context.Context, userID int64, query dto.Hist
 		query.Phone = query.Search
 	}
 
+	page := query.Offset
+
+	offset := (query.Offset - 1) * query.Limit
+
+	query.Offset = offset
+
 	res, err := us.ur.HistoryUR(c, userID, query)
 	if err != nil {
 		return nil, err
 	}
 
 	historys := make([]dto.HistoryTransaction, 0, len(*res))
+	var totalData float64
 	for _, u := range *res {
+		totalData = u.TotalData
 		history := dto.HistoryTransaction{
-			Fullname: u.Type,
-			ImageURL: new(string),
-			Phone:    new(string),
-			Amount:   0,
-			ID:       userID,
-			Type:     "",
+			Fullname: u.Fullname,
+			ImageURL: u.ImageURL,
+			Phone:    u.Phone,
+			Amount:   u.Amount,
+			ID:       u.ID,
+			Type:     u.Type,
 		}
 		historys = append(historys, history)
+	}
 
+	totalPage := math.Ceil(totalData / float64(query.Limit))
+
+	pathUrl := "/user/history"
+
+	prev := url.Values{}
+	next := url.Values{}
+	if isByName {
+		prev.Add("search", query.Fullname)
+		next.Add("search", query.Fullname)
+	}
+
+	if !isByName && query.Phone != "" {
+		prev.Add("search", query.Phone)
+		next.Add("search", query.Phone)
+	}
+
+	prev.Add("limit", strconv.Itoa(query.Limit))
+	next.Add("limit", strconv.Itoa(query.Limit))
+	prev.Add("offset", strconv.Itoa(page-1))
+	next.Add("offset", strconv.Itoa(page+1))
+
+	prevPage := fmt.Sprintf("%s?%s", pathUrl, prev.Encode())
+	nextPage := fmt.Sprintf("%s?%s", pathUrl, next.Encode())
+
+	if page <= 1 {
+		prevPage = ""
+	}
+
+	if page >= int(totalPage) {
+		nextPage = ""
 	}
 
 	return &dto.HistoryTransactionResponse{
-		Data: historys,
+		Data:      historys,
+		TotalData: int64(totalData),
+		TotalPage: int64(totalPage),
+		PrevPage:  prevPage,
+		NextPage:  nextPage,
 	}, nil
 }

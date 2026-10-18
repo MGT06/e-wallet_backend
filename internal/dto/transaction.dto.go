@@ -41,7 +41,11 @@ type HistoryTransaction struct {
 }
 
 type HistoryTransactionResponse struct {
-	Data []HistoryTransaction `json:"data"`
+	TotalData int64                `json:"total_data"`
+	TotalPage int64                `json:"total_page"`
+	PrevPage  string               `json:"prev_page"`
+	NextPage  string               `json:"next_page"`
+	Data      []HistoryTransaction `json:"data"`
 }
 
 type TopupsRequest struct {
@@ -49,7 +53,7 @@ type TopupsRequest struct {
 	TotalAmount   int64  `json:"total_amount"`
 	Tax           int64  `json:"tax"`
 	XenditCode    string `json:"xendit_code"`
-	PaymentMethod int  `json:"payment_method_id"`
+	PaymentMethod int    `json:"payment_method_id"`
 }
 
 type TopupsResponse struct {
