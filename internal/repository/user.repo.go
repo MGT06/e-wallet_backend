@@ -70,7 +70,7 @@ func (ur *UserRepo) GetUserProfileUR(c context.Context, userID int64) (*models.A
 	return &user, nil
 }
 
-func (ur *UserRepo) ChangeProfileUR(ctx context.Context, userID int64, image_path string, body dto.UserChangeProfileRequest) (*models.Account, error) {
+func (ur *UserRepo) ChangeProfileUR(c context.Context, userID int64, image_path string, body dto.UserChangeProfileRequest) (*models.Account, error) {
 	query := `
         UPDATE accounts
         SET 
@@ -94,7 +94,7 @@ func (ur *UserRepo) ChangeProfileUR(ctx context.Context, userID int64, image_pat
 	}
 	var profile models.Account
 	err := ur.db.QueryRow(
-		ctx,
+		c,
 		query,
 		args...,
 	).Scan(
@@ -112,14 +112,14 @@ func (ur *UserRepo) ChangeProfileUR(ctx context.Context, userID int64, image_pat
 	return &profile, nil
 }
 
-func (ur *UserRepo) DeletePhotoProfileUR(ctx context.Context, userID int64) error {
+func (ur *UserRepo) DeletePhotoProfileUR(c context.Context, userID int64) error {
 	query := `
         UPDATE accounts
         SET 
             image_url = ''
         WHERE id = $1
     `
-	tag, err := ur.db.Exec(ctx, query, userID)
+	tag, err := ur.db.Exec(c, query, userID)
 	if err != nil {
 		log.Printf("[UserRepo.DeletePhotoProfileUR] Exec : %s", err)
 		var repoErr *pgconn.PgError
@@ -142,7 +142,7 @@ func (ur *UserRepo) DeletePhotoProfileUR(ctx context.Context, userID int64) erro
 	return nil
 }
 
-func (ur *UserRepo) ChangePasswordUR(ctx context.Context, userID int64, password string) error {
+func (ur *UserRepo) ChangePasswordUR(c context.Context, userID int64, password string) error {
 	query := `
         UPDATE accounts
         SET 
@@ -151,7 +151,7 @@ func (ur *UserRepo) ChangePasswordUR(ctx context.Context, userID int64, password
     `
 	args := []any{password, userID}
 
-	tag, err := ur.db.Exec(ctx, query, args...)
+	tag, err := ur.db.Exec(c, query, args...)
 	if err != nil {
 		log.Printf("[UserRepo.ChangePasswordUR] Exec : %s", err)
 		var repoErr *pgconn.PgError
@@ -175,24 +175,26 @@ func (ur *UserRepo) ChangePasswordUR(ctx context.Context, userID int64, password
 
 }
 
-func (ur *UserRepo) GetUserUR(c context.Context, userID int64) (string, error) {
+func (ur *UserRepo) GetUserUR(c context.Context, userID int64) (*models.Account, error) {
 	query := `
         SELECT
-            password
+            password,
+			pin
         FROM accounts
         WHERE id = $1
     `
-	var user string
+	var user models.Account
 	err := ur.db.QueryRow(c, query, userID).Scan(
-		&user,
+		&user.Password,
+		&user.Pin,
 	)
 
 	if err != nil {
 		log.Printf("[UserRepo.GetUserUR] QueryRow : %s", err)
-		return "", msgerr.ErrUserNotExist
+		return nil, msgerr.ErrUserNotExist
 	}
 
-	return user, nil
+	return &user, nil
 }
 
 func (ur *UserRepo) SetPinUR(c context.Context, pin string, idUser int64) error {
@@ -241,4 +243,29 @@ func (ur *UserRepo) AddFavoriteUR(c context.Context, body dto.AddFavoriteRequest
 		return msgerr.ErrNoRowAffected
 	}
 	return nil
+}
+
+func (ur *UserRepo) ChangePinUR(c context.Context, userId int64, pin string) error {
+	query := `
+        UPDATE accounts 
+		SET pin = $1 
+		WHERE id = $2
+    `
+	args := []any{pin, userId}
+
+	tag, err := ur.db.Exec(c, query, args...)
+	if err != nil {
+		log.Printf("[UserRepo.ChangePinUR] Exec : %s\n\n%s\n\n", err, pin)
+		return err
+	}
+
+	if tag.RowsAffected() == 0 {
+		log.Printf("[ChangePinUR.RowsAffected] : %s", err)
+		return msgerr.ErrNoRowAffected
+	}
+	return nil
+}
+
+func (ur *UserRepo) HistoryUR(c context.Context, userId int64, query dto.HistoryTransactionRequest) (*[]models.HistoryMDL, error) {
+	return nil, nil
 }

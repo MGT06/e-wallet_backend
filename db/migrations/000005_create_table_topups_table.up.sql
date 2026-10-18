@@ -12,4 +12,5 @@ CREATE TABLE topups (
   status            status_topups  NOT NULL DEFAULT 'pending',
   paid_at           TIMESTAMPTZ,
   created_at        TIMESTAMPTZ    NOT NULL DEFAULT now()
+  updated_at        TIMESTAMPTZ    NULL
 );

@@ -19,7 +19,9 @@ func ValidationError(errs validator.ValidationErrors) string {
 		case "min":
 			return fmt.Sprintf("field %s minimal harus memiliki %s karakter.", field, fe.Param())
 		case "max":
-			return fmt.Sprintf("ifeld %s maksimal memiliki %s karakter.", field, fe.Param())
+			return fmt.Sprintf("field %s maksimal memiliki %s karakter.", field, fe.Param())
+		case "len":
+			return fmt.Sprintf("field %s harus 6 angka.", field)
 		default:
 			return fmt.Sprintf("field %s tidak valid pada rule %s.", field, fe.Tag())
 		}

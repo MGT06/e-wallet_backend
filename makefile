@@ -11,7 +11,6 @@ migrate-create:
 
 migrate-up:
 	migrate -database $(DB_URL) -path $(MIGRATE_PATH) up
-	migrate -database $(DB_URL) -path $(MIGRATE_PATH) up
 
 migrate-down:
 	migrate -database $(DB_URL) -path $(MIGRATE_PATH) down $(N)

@@ -19,7 +19,7 @@ func NewTransactionContorller(ts *service.TransactionService) *TransactionContor
 	}
 }
 
-// FindPeopleHandler
+// Find People
 //
 // @Summary      	Find people
 // @Description  	Get all users active
