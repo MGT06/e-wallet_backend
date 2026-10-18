@@ -2,6 +2,7 @@ package controller
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -469,7 +470,8 @@ func (uc *UserContorller) AddFavoriteUC(c *gin.Context) {
 		return
 	}
 
-	if err := uc.us.AddFavoriteUS(c.Request.Context(), userID, body); err != nil {
+	res, err := uc.us.ToggleFavoriteUS(c.Request.Context(), userID, body)
+	if err != nil {
 		if errors.Is(err, msgerr.ErrUSerFavNotFound) || errors.Is(err, msgerr.ErrUserNotExist) {
 			c.JSON(http.StatusBadRequest, dto.ResponseError{
 				Success: false,
@@ -484,9 +486,9 @@ func (uc *UserContorller) AddFavoriteUC(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusNoContent, dto.ResponseSuccess{
+	c.JSON(http.StatusOK, dto.ResponseSuccess{
 		Success: true,
-		Message: "add to favorite succesfully",
+		Message: fmt.Sprintf("%s succesfully", res),
 	})
 }
 

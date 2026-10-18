@@ -13,10 +13,11 @@ type FindAllPeopleResponse struct {
 }
 
 type FindAllPeopleRequest struct {
-	Fullname string `form:"-"`
-	Phone    string `form:"-"`
-	Search   string `form:"search"`
-	Limit    int    `form:"limit"`
+	Fullname  string `form:"-"`
+	Phone     string `form:"-"`
+	Search    string `form:"search"`
+	Limit     int    `form:"limit"`
+	IsFavorit bool   `form:"is_favorit"`
 }
 
 type HistoryTransactionRequest struct {

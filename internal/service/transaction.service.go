@@ -52,10 +52,11 @@ func (ts *TransactionService) FindPeopleTS(c context.Context, userID int64, quer
 	users := make([]dto.FindAllPeople, 0, len(*res))
 	for _, u := range *res {
 		users = append(users, dto.FindAllPeople{
-			ID:       u.ID,
-			Fullname: u.Fullname,
-			ImageURL: u.ImageURL,
-			Phone:    u.Phone,
+			ID:        u.ID,
+			Fullname:  u.Fullname,
+			ImageURL:  u.ImageURL,
+			Phone:     u.Phone,
+			IsFavorit: u.IsFavorit,
 		})
 	}
 
