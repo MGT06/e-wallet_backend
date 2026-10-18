@@ -51,3 +51,8 @@ type PaymentMethodResponse struct {
 type DeletePhotoProfileResponse struct {
 	ImageURL *string `json:"image_url"`
 }
+
+type AddFavoriteRequest struct {
+	ID         int64 `json:"-"`
+	FavoriteID int64 `json:"favorite_account_id"`
+}

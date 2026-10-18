@@ -187,3 +187,11 @@ func (us *UserService) SetPinUS(ctx context.Context, idUser int64, pin string) e
 
 	return nil
 }
+
+func (us *UserService) AddFavoriteUS(c context.Context, userId int64, body dto.AddFavoriteRequest) (err error) {
+	err = us.ur.AddFavoriteUR(c, body)
+	if err != nil {
+		return err
+	}
+	return
+}

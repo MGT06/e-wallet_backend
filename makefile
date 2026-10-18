@@ -11,6 +11,7 @@ migrate-create:
 
 migrate-up:
 	migrate -database $(DB_URL) -path $(MIGRATE_PATH) up
+	migrate -database $(DB_URL) -path $(MIGRATE_PATH) up
 
 migrate-down:
 	migrate -database $(DB_URL) -path $(MIGRATE_PATH) down $(N)
@@ -41,3 +42,8 @@ logs:
 
 swag:
 	swag init -g cmd/main.go -o docs
+
+reset:
+	make down
+	make up
+	make logs
