@@ -1,6 +1,8 @@
 package router
 
 import (
+	"time"
+
 	"github.com/MGT06/e-wallet_backend/internal/controller"
 	"github.com/MGT06/e-wallet_backend/internal/middleware"
 	"github.com/MGT06/e-wallet_backend/internal/repository"
@@ -19,7 +21,7 @@ func AuthRouter(router *gin.Engine, pool *pgxpool.Pool, redis *redis.Client) {
 
 	auth.POST("register", ac.RegisterAC)
 	auth.POST("login", ac.LoginAC)
-	auth.POST("forgot", ac.ForgotPasswordAC)
+	auth.POST("forgot", middleware.RateLimitByIP(redis, 10, time.Hour), ac.ForgotPasswordAC)
 	auth.POST("check-otp", ac.CheckOTP)
 	auth.POST("reset-password", ac.ResetPasswordAC)
 	auth.DELETE("logout", middleware.AuthMiddleware(redis), ac.LogoutAC)

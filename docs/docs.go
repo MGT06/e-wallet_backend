@@ -29,7 +29,7 @@ const docTemplate = `{
                 "summary": "Check OTP user",
                 "parameters": [
                     {
-                        "description": "user",
+                        "description": "email and otp user",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -254,7 +254,7 @@ const docTemplate = `{
                 "summary": "Reset Password User",
                 "parameters": [
                     {
-                        "description": "email and new password user",
+                        "description": "token and new password user",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -1054,16 +1054,16 @@ const docTemplate = `{
         "dto.ResetPassRequest": {
             "type": "object",
             "required": [
-                "email",
-                "new_password"
+                "new_password",
+                "reset_token"
             ],
             "properties": {
-                "email": {
-                    "type": "string"
-                },
                 "new_password": {
                     "type": "string",
                     "minLength": 8
+                },
+                "reset_token": {
+                    "type": "string"
                 }
             }
         },
@@ -1173,7 +1173,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "192.168.0.186:5001",
+	Host:             "localhost:5000",
 	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "Application E-Walet",

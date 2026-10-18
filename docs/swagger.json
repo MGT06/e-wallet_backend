@@ -6,7 +6,7 @@
         "contact": {},
         "version": "1.0"
     },
-    "host": "192.168.0.186:5001",
+    "host": "localhost:5000",
     "basePath": "/",
     "paths": {
         "/auth/check-otp": {
@@ -23,7 +23,7 @@
                 "summary": "Check OTP user",
                 "parameters": [
                     {
-                        "description": "user",
+                        "description": "email and otp user",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -248,7 +248,7 @@
                 "summary": "Reset Password User",
                 "parameters": [
                     {
-                        "description": "email and new password user",
+                        "description": "token and new password user",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -1048,16 +1048,16 @@
         "dto.ResetPassRequest": {
             "type": "object",
             "required": [
-                "email",
-                "new_password"
+                "new_password",
+                "reset_token"
             ],
             "properties": {
-                "email": {
-                    "type": "string"
-                },
                 "new_password": {
                     "type": "string",
                     "minLength": 8
+                },
+                "reset_token": {
+                    "type": "string"
                 }
             }
         },

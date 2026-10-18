@@ -2,9 +2,9 @@ package mailer
 
 import (
 	"bytes"
+	"embed"
 	"html/template"
 	"os"
-	"path/filepath"
 	"strconv"
 
 	"gopkg.in/gomail.v2"
@@ -29,10 +29,11 @@ func NewMailer() (*Mailer, error) {
 	}, nil
 }
 
-func RenderTemplate(filename string, data any) (string, error) {
-	path := filepath.Join("internal/template", filename)
+//go:embed template/*.html
+var templateFS embed.FS
 
-	tmpl, err := template.ParseFiles(path)
+func RenderTemplate(data any) (string, error) {
+	tmpl, err := template.ParseFS(templateFS, "template/email.template.html")
 	if err != nil {
 		return "", err
 	}

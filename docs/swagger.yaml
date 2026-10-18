@@ -73,14 +73,14 @@ definitions:
     type: object
   dto.ResetPassRequest:
     properties:
-      email:
-        type: string
       new_password:
         minLength: 8
         type: string
+      reset_token:
+        type: string
     required:
-    - email
     - new_password
+    - reset_token
     type: object
   dto.ResponseError:
     properties:
@@ -145,7 +145,7 @@ definitions:
       phone:
         type: string
     type: object
-host: 192.168.0.186:5001
+host: localhost:5000
 info:
   contact: {}
   description: This is a sample send request use API.
@@ -157,7 +157,7 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: user
+      - description: email and otp user
         in: body
         name: body
         required: true
@@ -302,7 +302,7 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: email and new password user
+      - description: token and new password user
         in: body
         name: body
         required: true

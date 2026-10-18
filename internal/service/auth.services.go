@@ -2,6 +2,9 @@ package service
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/base64"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -95,72 +98,155 @@ type ForgotData struct {
 	OTP   string
 }
 
-func (as *AuthService) ForgotPasswordAS(c context.Context, email string) (string, error) {
+func (as *AuthService) ForgotPasswordAS(c context.Context, email string) error {
+	keyNX := fmt.Sprintf("ewallet:otp:cooldown:%s", email)
+	ok, err := as.redis.SetNX(c, keyNX, 1, 60*time.Second).Result()
+	if err != nil {
+		return err
+	}
+
+	if !ok {
+		return msgerr.ErrTooManyRequests
+	}
+
 	emailUser, err := as.ar.ForgotPasswordAR(c, email)
 	if err != nil {
-		return "", err
-	}
-
-	otp, er := utils.GenerateOTP()
-	if er != nil {
-		return "", err
-	}
-
-	m, fail := mailer.NewMailer()
-	if fail != nil {
-		return "", fail
-	}
-
-	html, errors := mailer.RenderTemplate("email.template.html", ForgotData{
-		Email: emailUser,
-		OTP:   otp,
-	})
-
-	if errors != nil {
-		return "", errors
-	}
-
-	if err := m.SendMail(email, html); err != nil {
-		return "", err
-	}
-
-	hash, e := as.conf.HashPassword(otp)
-	if e != nil {
-		return "", e
-	}
-
-	key := fmt.Sprintf("ewallet:otp:%s", email)
-	ttl := 3 * time.Minute
-
-	if err := utils.SetToRedis(c, as.redis, key, hash, ttl); err != nil {
-		return "", err
-	}
-
-	return emailUser, nil
-}
-
-func (as *AuthService) CheckOTP(c context.Context, otp, email string) error {
-	key := fmt.Sprintf("ewallet:otp:%s", email)
-
-	realotp, err := utils.GetFromRedis[string](c, as.redis, key)
-	if err != nil {
+		if errors.Is(err, msgerr.ErrEmailNotExist) {
+			return nil
+		}
 		return err
 	}
 
-	if _, err := as.conf.Compare(otp, realotp); err != nil {
-		return err
-	}
+	go as.proccessOTP(emailUser)
 
 	return nil
 }
 
+func (as *AuthService) proccessOTP(email string) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	otp, err := utils.GenerateOTP()
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	hash, er := as.conf.HashPassword(otp)
+	if er != nil {
+		log.Println(er)
+		return
+	}
+
+	keyotp := fmt.Sprintf("ewallet:otp:%s", email)
+	ttl := 3 * time.Minute
+
+	if err := utils.SetToRedis(ctx, as.redis, keyotp, hash, ttl); err != nil {
+		log.Println(err)
+		return
+	}
+
+	keyattempt := fmt.Sprintf("ewallet:otp:attempts:%s", email)
+	utils.DelFromRedis(ctx, as.redis, keyattempt)
+
+	html, e := mailer.RenderTemplate(ForgotData{
+		Email: email,
+		OTP:   otp,
+	})
+	if e != nil {
+		utils.DelFromRedis(ctx, as.redis, keyotp)
+		log.Println(e)
+		return
+	}
+
+	m, fail := mailer.NewMailer()
+	if fail != nil {
+		utils.DelFromRedis(ctx, as.redis, keyotp)
+		log.Println(fail)
+		return
+	}
+
+	if err := m.SendMail(email, html); err != nil {
+		utils.DelFromRedis(ctx, as.redis, keyotp)
+		log.Println(err)
+		return
+	}
+}
+
+func (as *AuthService) CheckOTP(c context.Context, otp, email string) (string, error) {
+
+	keyattempt := fmt.Sprintf("ewallet:otp:attempts:%s", email)
+	pipe := as.redis.TxPipeline()
+
+	incr := pipe.Incr(c, keyattempt)
+	pipe.ExpireNX(c, keyattempt, 3*time.Minute)
+
+	if _, err := pipe.Exec(c); err != nil {
+		return "", err
+	}
+
+	keyotp := fmt.Sprintf("ewallet:otp:%s", email)
+
+	if incr.Val() > 3 {
+		utils.DelFromRedis(c, as.redis, keyotp)
+		return "", msgerr.ErrTooManyAttempts
+	}
+
+	hashotp, er := utils.GetFromRedis[string](c, as.redis, keyotp)
+	if er != nil {
+		if errors.Is(er, redis.Nil) {
+			return "", msgerr.ErrInvalidOTP
+		}
+		return "", er
+	}
+
+	if _, err := as.conf.Compare(otp, hashotp); err != nil {
+		return "", msgerr.ErrInvalidOTP
+	}
+
+	deleted, e := as.redis.Del(c, keyotp).Result()
+	if e != nil {
+		return "", e
+	}
+	if deleted == 0 {
+		return "", msgerr.ErrInvalidOTP
+	}
+
+	b := make([]byte, 60)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+
+	token := base64.RawURLEncoding.EncodeToString(b)
+	keytoken := fmt.Sprintf("ewallet:reset:%s", token)
+	if err := utils.SetToRedis(c, as.redis, keytoken, email, 10*time.Minute); err != nil {
+		return "", err
+	}
+
+	return token, nil
+}
+
 func (as *AuthService) ResetPassword(c context.Context, body dto.ResetPassRequest) error {
-	newPassword, err := as.conf.HashPassword(body.NewPassword)
+	keytoken := fmt.Sprintf("ewallet:reset:%s", body.Token)
+	email, err := utils.GetFromRedis[string](c, as.redis, keytoken)
 	if err != nil {
 		return err
 	}
 
-	if err := as.ar.ResetPassword(c, newPassword, body.Email); err != nil {
+	deleted, er := as.redis.Del(c, keytoken).Result()
+	if er != nil {
+		return er
+	}
+	if deleted == 0 {
+		return msgerr.ErrInvalidToken
+	}
+
+	newPassword, e := as.conf.HashPassword(body.NewPassword)
+	if e != nil {
+		return e
+	}
+
+	if err := as.ar.ResetPassword(c, newPassword, email); err != nil {
 		return err
 	}
 

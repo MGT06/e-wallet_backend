@@ -31,6 +31,6 @@ type CheckOTPRequest struct {
 
 // Reset Password
 type ResetPassRequest struct {
-	Email       string `json:"email" binding:"required,email"`
+	Token       string `json:"reset_token" binding:"required"`
 	NewPassword string `json:"new_password" binding:"required,min=8"`
 }
