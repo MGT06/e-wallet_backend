@@ -26,7 +26,7 @@ up:
 	docker compose -f deployment/docker-compose.yml up -d --build
 
 down:
-	docker compose -f deployment/docker-compose.yml down
+	docker compose -f deployment/docker-compose.yml down --rmi local
 
 ps:
 	docker compose -f deployment/docker-compose.yml ps -a
@@ -36,3 +36,8 @@ logs:
 
 swag:
 	swag init -g cmd/main.go -o docs
+
+reset:
+	make down
+	make up
+	make logs
