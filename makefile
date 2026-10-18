@@ -11,6 +11,7 @@ migrate-create:
 
 migrate-up:
 	migrate -database $(DB_URL) -path $(MIGRATE_PATH) up
+	migrate -database $(DB_URL) -path $(MIGRATE_PATH) up
 
 migrate-down:
 	migrate -database $(DB_URL) -path $(MIGRATE_PATH) down $(N)
@@ -24,9 +25,14 @@ db-reset:
 
 up:
 	docker compose -f deployment/docker-compose.yml up -d --build
+	make logs
 
 down:
 	docker compose -f deployment/docker-compose.yml down --rmi local
+
+reset:
+	make down
+	make up
 
 ps:
 	docker compose -f deployment/docker-compose.yml ps -a

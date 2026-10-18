@@ -57,6 +57,10 @@ func (tr *TransactionRepo) FindPeopleTR(c context.Context, userID int64, body dt
 		paramIndex += 1
 	}
 
+	if body.IsFavorit {
+		fmt.Fprintf(&query, " AND f.favorite_account_id IS NOT NULL ")
+	}
+
 	if body.Limit >= 0 {
 		fmt.Fprintf(&query, " LIMIT $%d", paramIndex)
 		args = append(args, body.Limit)
@@ -64,6 +68,8 @@ func (tr *TransactionRepo) FindPeopleTR(c context.Context, userID int64, body dt
 	}
 
 	finalQuery := query.String()
+
+	fmt.Println(finalQuery)
 
 	rows, err := tr.db.Query(c, finalQuery, args...)
 	if err != nil {

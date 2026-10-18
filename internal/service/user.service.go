@@ -189,13 +189,14 @@ func (us *UserService) SetPinUS(c context.Context, idUser int64, pin string) err
 	return nil
 }
 
-func (us *UserService) AddFavoriteUS(c context.Context, userID int64, body dto.AddFavoriteRequest) (err error) {
+func (us *UserService) ToggleFavoriteUS(c context.Context, userID int64, body dto.AddFavoriteRequest) (string, error) {
 	body.ID = userID
-	err = us.ur.AddFavoriteUR(c, body)
+	res, err := us.ur.ToggleFavoriteUR(c, body)
 	if err != nil {
-		return err
+		return "", err
 	}
-	return
+
+	return res, nil
 }
 
 func (us *UserService) ChangePinUS(c context.Context, userID int64, body dto.ChangePinRequest) error {

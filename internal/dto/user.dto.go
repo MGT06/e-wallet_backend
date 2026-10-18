@@ -40,12 +40,12 @@ type SetPinRequest struct {
 }
 
 type PaymentMethodResponse struct {
-	ID         int32   `db:"id"`
-	Name       string  `db:"name"`
-	Type       string  `db:"type"`
-	XenditCode string  `db:"xendit_code"`
-	IconURL    *string `db:"icon_url"`
-	TaxPercent float64 `db:"tax_percent"`
+	ID         int32   `json:"id"`
+	Name       string  `json:"name"`
+	Type       string  `json:"type"`
+	XenditCode string  `json:"xendit_code"`
+	IconURL    *string `json:"icon_url"`
+	TaxPercent float64 `json:"tax_percent"`
 }
 
 type DeletePhotoProfileResponse struct {
@@ -64,4 +64,9 @@ type ChangePinRequest struct {
 
 type CheckPinRequest struct {
 	OldPin string `json:"pin" binding:"required,len=6,numeric" example:"123456"`
+}
+
+type ToggleFavoriteResponse struct {
+	IsFavorite string `json:"is_favorit"`
+	UserProfileResponse
 }

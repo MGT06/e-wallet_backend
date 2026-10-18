@@ -47,6 +47,7 @@ func (ur *UserRepo) GetUserHeaderUR(c context.Context, userID int64) (*models.Ac
 func (ur *UserRepo) GetUserProfileUR(c context.Context, userID int64) (*models.Account, error) {
 	query := `
         SELECT
+			id,
             fullname, 
             image_url, 
             phone, 
@@ -56,6 +57,7 @@ func (ur *UserRepo) GetUserProfileUR(c context.Context, userID int64) (*models.A
     `
 	var user models.Account
 	err := ur.db.QueryRow(c, query, userID).Scan(
+		&user.ID,
 		&user.Fullname,
 		&user.ImageURL,
 		&user.Phone,
@@ -213,10 +215,56 @@ func (ur *UserRepo) SetPinUR(c context.Context, pin string, idUser int64) error 
 	return nil
 }
 
-func (ur *UserRepo) AddFavoriteUR(c context.Context, body dto.AddFavoriteRequest) error {
+func (ur *UserRepo) ToggleFavoriteUR(c context.Context, body dto.AddFavoriteRequest) (string, error) {
 	query := `
-        INSERT INTO favorites (account_id, favorite_account_id)
-        VALUES ($1, $2)
+        WITH target_check AS (
+            SELECT account_id FROM favorites 
+            WHERE account_id = $1 AND favorite_account_id = $2
+        ),
+        deleted AS (
+            DELETE FROM favorites 
+            WHERE account_id = $1 AND favorite_account_id = $2
+            RETURNING 'deleted' AS action
+        ),
+        inserted AS (
+            INSERT INTO favorites (account_id, favorite_account_id)
+            SELECT $1, $2
+            WHERE NOT EXISTS (SELECT 1 FROM target_check)
+            RETURNING 'saved' AS action
+        )
+        SELECT action FROM inserted
+        UNION ALL
+        SELECT action FROM deleted
+    `
+	args := []any{body.ID, body.FavoriteID}
+
+	var action string
+	err := ur.db.QueryRow(c, query, args...).Scan(&action)
+	if err != nil {
+		log.Printf("[UserRepo.ToggleFavoriteUR] QueryRow : %s", err)
+
+		if pgErr, ok := errors.AsType[*pgconn.PgError](err); ok {
+			if pgErr.Code == "23503" {
+				switch pgErr.ConstraintName {
+				case "favorites_account_id_fkey":
+					return "", msgerr.ErrUserNotExist
+				case "favorites_favorite_account_id_fkey":
+					return "", msgerr.ErrUSerFavNotFound
+				default:
+					return "", err
+				}
+			}
+		}
+		return "", err
+	}
+
+	return action, nil
+}
+
+func (ur *UserRepo) DelFavoriteUR(c context.Context, body dto.AddFavoriteRequest) error {
+	query := `
+        DELETE FROM favorites
+        WHERE account_id = $1 AND favorite_account_id = $2
     `
 	args := []any{body.ID, body.FavoriteID}
 
