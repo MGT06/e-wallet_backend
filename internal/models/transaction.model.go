@@ -18,10 +18,11 @@ type Transaction struct {
 }
 
 type HistoryMDL struct {
-	ID       int64   `db:"id"`
-	Type     string  `db:"type"`
-	Amount   int64   `db:"amount"`
-	Fullname string  `db:"fullname"`
-	ImageURL *string `db:"image_url"`
-	Phone    *string `db:"phone"`
+	ID        int64   `db:"id"`
+	Type      string  `db:"type"`
+	Amount    int64   `db:"amount"`
+	Fullname  string  `db:"fullname"`
+	ImageURL  *string `db:"image_url"`
+	Phone     *string `db:"phone"`
+	TotalData float64 `db:"total"`
 }

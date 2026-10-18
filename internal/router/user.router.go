@@ -26,4 +26,5 @@ func UserRouter(router *gin.Engine, pool *pgxpool.Pool, redis *redis.Client) {
 	user.POST("favorite", middleware.AuthMiddleware(redis), uc.AddFavoriteUC)
 	user.PATCH("change-pin", middleware.AuthMiddleware(redis), uc.ChangePinUC)
 	user.POST("check-pin", middleware.AuthMiddleware(redis), uc.CheckPinUC)
+	user.GET("history", middleware.AuthMiddleware(redis), uc.HistoryUC)
 }
