@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/MGT06/e-wallet_backend/internal/dto"
+	msgerr "github.com/MGT06/e-wallet_backend/internal/message"
 	"github.com/MGT06/e-wallet_backend/internal/service"
 	"github.com/MGT06/e-wallet_backend/internal/utils"
 	"github.com/gin-gonic/gin"
@@ -119,7 +120,7 @@ func (tc *TransactionContorller) PaymentMethodeTC(c *gin.Context) {
 // @Tags         	Transaction
 // @Accept       	json
 // @Produce      	json
-// @Param        	body  body	dto.TopupsRequest  false  "amount and payment method"
+// @Param        	body  body	dto.TopupsRequest  true  "amount and payment method"
 // @Security     	Bearer
 // @Router			/transaction/topup	[post]
 // @Success			200		{object}	dto.ResponseSuccess
@@ -170,5 +171,76 @@ func (tc *TransactionContorller) TopupsUC(c *gin.Context) {
 		Success: true,
 		Message: "Topups Pending",
 		Data:    resp,
+	})
+}
+
+// Transfer
+//
+// @Summary      	user transfer
+// @Tags         	Transaction
+// @Accept       	json
+// @Produce      	json
+// @Param        	body  body	dto.TransferRequest  false  "amount and payment method"
+// @Security     	Bearer
+// @Router			/transaction/transfer	[post]
+// @Success			201		{object}	dto.ResponseSuccess
+// @Failure			400		{object}	dto.ResponseError
+// @Failure			404		{object}	dto.ResponseError
+// @Failure			422		{object}	dto.ResponseError
+// @Failure			500		{object}	dto.ResponseError
+func (tc *TransactionContorller) TransferUC(ctx *gin.Context) {
+	res, exist := ctx.Get("ID")
+	if !exist {
+		ctx.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	var req dto.TransferRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		log.Println(err)
+		found, isErr := errors.AsType[validator.ValidationErrors](err)
+		if isErr {
+			err := utils.ValidationError(found)
+			ctx.JSON(http.StatusBadRequest, dto.ResponseError{
+				Success: false,
+				Message: err,
+			})
+			return
+		}
+
+		ctx.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	err := tc.ts.Transfer(ctx.Request.Context(), res.(int64), req)
+	if err != nil {
+		switch {
+		case errors.Is(err, msgerr.ErrSelfTransfer):
+			ctx.JSON(http.StatusBadRequest, dto.ResponseError{
+				Success: false,
+				Message: "You cannot transfer to your own account",
+			})
+		case errors.Is(err, msgerr.ErrReceiverNotFound):
+			ctx.JSON(http.StatusNotFound, dto.ResponseError{
+				Success: false,
+				Message: "Receiver not found",
+			})
+		case errors.Is(err, msgerr.ErrInsufficientBalance):
+			ctx.JSON(http.StatusUnprocessableEntity, dto.ResponseError{
+				Success: false,
+				Message: "Insufficient balance",
+			})
+		}
+	}
+
+	ctx.JSON(http.StatusCreated, dto.ResponseSuccess{
+		Success: true,
+		Message: "Transfer Success",
 	})
 }
