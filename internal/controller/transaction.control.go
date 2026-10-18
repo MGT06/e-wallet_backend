@@ -57,27 +57,26 @@ func (tc *TransactionContorller) FindPeopleUC(c *gin.Context) {
 
 	var query dto.FindAllPeopleRequest
 	if err := c.ShouldBindQuery(&query); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": "invalid query parameters",
-			"error":   err.Error(),
+		c.JSON(http.StatusBadRequest, dto.ResponseError{
+			Success: false,
+			Message: "invalid query parameters",
 		})
 		return
 	}
 
 	users, err := tc.ts.FindPeopleTS(c.Request.Context(), userID, query)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"status":  false,
-			"message": err.Error(),
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"status":  true,
-		"message": "success get people list",
-		"data":    users,
+	c.JSON(http.StatusOK, dto.ResponseSuccess{
+		Success: true,
+		Message: "success get people list",
+		Data:    users,
 	})
 }
 
