@@ -24,9 +24,14 @@ db-reset:
 
 up:
 	docker compose -f deployment/docker-compose.yml up -d --build
+	make logs
 
 down:
 	docker compose -f deployment/docker-compose.yml down --rmi local
+
+reset:
+	make down
+	make up
 
 ps:
 	docker compose -f deployment/docker-compose.yml ps -a
