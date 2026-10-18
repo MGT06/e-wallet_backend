@@ -10,7 +10,7 @@ migrate-create:
 	migrate create -ext sql -dir $(MIGRATE_PATH) -seq create_$(NAME)_table
 
 migrate-up:
-	migrate -database $(DB_URL) -path $(MIGRATE_PATH) up --build
+	migrate -database $(DB_URL) -path $(MIGRATE_PATH) up
 
 migrate-down:
 	migrate -database $(DB_URL) -path $(MIGRATE_PATH) down $(N)
