@@ -356,7 +356,7 @@ func (uc *UserContorller) ChangePasswordUC(c *gin.Context) {
 // @Accept			json
 // @Produce			json
 // @Security		Bearer
-// @Router			/user/set-pin		[patch]
+// @Router			/user/set-pin		[post]
 // @Param			body	body 		dto.SetPinRequest true	"pin user"
 // @Success			204		{object}	dto.ResponseSuccess
 // @Failure			400		{object}	dto.ResponseError
