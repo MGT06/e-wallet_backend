@@ -418,7 +418,7 @@ func (uc *UserContorller) SetPinUC(c *gin.Context) {
 
 // Add Favorite
 //
-// @Summary			Add Favoritr
+// @Summary			Add Favorite
 // @Tags			User
 // @Accept			json
 // @Produce			json
