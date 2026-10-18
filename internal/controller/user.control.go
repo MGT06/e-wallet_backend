@@ -328,7 +328,7 @@ func (uc *UserContorller) ChangePasswordUC(c *gin.Context) {
 
 	err := uc.us.ChangePasswordUS(c.Request.Context(), userID, body)
 	if err != nil {
-		if errors.Is(err, msgerr.ErrNoRowAffected) || errors.Is(err, msgerr.ErrUserNotExist) {
+		if errors.Is(err, msgerr.ErrNoRowAffected) || errors.Is(err, msgerr.ErrUserNotExist) || errors.Is(err, msgerr.ErrOldPassword) {
 			c.JSON(http.StatusBadRequest, dto.ResponseError{
 				Success: false,
 				Message: err.Error(),
@@ -384,7 +384,7 @@ func (uc *UserContorller) SetPinUC(c *gin.Context) {
 
 	var body dto.SetPinRequest
 	if err := c.ShouldBindWith(&body, binding.JSON); err != nil {
-		log.Println(err)
+		log.Printf("[SetPinUC.ShouldBindWith] : %v", err)
 		found, isErr := errors.AsType[validator.ValidationErrors](err)
 		if isErr {
 			err := utils.ValidationError(found)
@@ -413,5 +413,295 @@ func (uc *UserContorller) SetPinUC(c *gin.Context) {
 	c.JSON(http.StatusNoContent, dto.ResponseSuccess{
 		Success: true,
 		Message: "Set Pin Succesfully",
+	})
+}
+
+// Add Favorite
+//
+// @Summary			Add Favorite
+// @Tags			User
+// @Accept			json
+// @Produce			json
+// @Security		Bearer
+// @Router			/user/favorite		[post]
+// @Param			body	body 		dto.AddFavoriteRequest true	"ID Account"
+// @Success			204		{object}	dto.ResponseSuccess
+// @Failure			400		{object}	dto.ResponseError
+// @Failure			500		{object}	dto.ResponseError
+func (uc *UserContorller) AddFavoriteUC(c *gin.Context) {
+	res, exist := c.Get("ID")
+	if !exist {
+		log.Printf("[UserContorller.DeletProfileUC] Error get token from redis")
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	userID, ok := res.(int64)
+	if !ok {
+		log.Printf("[UserContorller.DeletProfileUC] Error change to string")
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	var body dto.AddFavoriteRequest
+	if err := c.ShouldBindWith(&body, binding.JSON); err != nil {
+		log.Printf("[AddFavoriteUC.ShouldBindWith] : %v", err)
+		found, isErr := errors.AsType[validator.ValidationErrors](err)
+		if isErr {
+			err := utils.ValidationError(found)
+			c.JSON(http.StatusBadRequest, dto.ResponseError{
+				Success: false,
+				Message: err,
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	if err := uc.us.AddFavoriteUS(c.Request.Context(), userID, body); err != nil {
+		if errors.Is(err, msgerr.ErrUSerFavNotFound) || errors.Is(err, msgerr.ErrUserNotExist) {
+			c.JSON(http.StatusBadRequest, dto.ResponseError{
+				Success: false,
+				Message: err.Error(),
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	c.JSON(http.StatusNoContent, dto.ResponseSuccess{
+		Success: true,
+		Message: "add to favorite succesfully",
+	})
+}
+
+// Change Pin
+//
+// @Summary			Change Pin
+// @Description		Change pin user
+// @Tags			User
+// @Accept			json
+// @Produce			json
+// @Security		Bearer
+// @Router			/user/change-pin	[patch]
+// @Param			body	body 		dto.ChangePinRequest true "Body data change password"
+// @Success			200		{object}	dto.ResponseSuccess
+// @Failure			400		{object}	dto.ResponseError
+// @Failure			500		{object}	dto.ResponseError
+func (uc *UserContorller) ChangePinUC(c *gin.Context) {
+	res, exist := c.Get("ID")
+	if !exist {
+		log.Printf("[UserContorller.ChangePinUC] Error get token from redis")
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	userID, ok := res.(int64)
+	if !ok {
+		log.Printf("[ChangePinUC] Error change to string")
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	var body dto.ChangePinRequest
+	if err := c.ShouldBindWith(&body, binding.JSON); err != nil {
+		log.Printf("[ChangePinUC] ShouldBindWith: %v\n", err)
+		found, isErr := errors.AsType[validator.ValidationErrors](err)
+		if isErr {
+			err := utils.ValidationError(found)
+			c.JSON(http.StatusBadRequest, dto.ResponseError{
+				Success: false,
+				Message: err,
+			})
+			return
+		}
+
+		c.JSON(http.StatusBadRequest, dto.ResponseError{
+			Success: false,
+			Message: "invalid request payload",
+		})
+		return
+	}
+
+	err := uc.us.ChangePinUS(c.Request.Context(), userID, body)
+	if err != nil {
+		if errors.Is(err, msgerr.ErrOldPin) {
+			c.JSON(http.StatusBadRequest, dto.ResponseError{
+				Success: false,
+				Message: err.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.ResponseSuccess{
+		Success: true,
+		Message: "change pin succesfully",
+	})
+}
+
+// Check Pin
+//
+// @Summary			Check Pin
+// @Description		Change pin user
+// @Tags			User
+// @Accept			json
+// @Produce			json
+// @Security		Bearer
+// @Router			/user/check-pin		[post]
+// @Param			body	body 		dto.CheckPinRequest true "Body data change password"
+// @Success			200		{object}	dto.ResponseSuccess
+// @Failure			400		{object}	dto.ResponseError
+// @Failure			500		{object}	dto.ResponseError
+func (uc *UserContorller) CheckPinUC(c *gin.Context) {
+	res, exist := c.Get("ID")
+	if !exist {
+		log.Printf("[UserContorller.ChangePinUC] Error get token from redis")
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	userID, ok := res.(int64)
+	if !ok {
+		log.Printf("[ChangePinUC] Error change to string")
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	var body dto.CheckPinRequest
+	if err := c.ShouldBindWith(&body, binding.JSON); err != nil {
+		log.Printf("[ChangePinUC] ShouldBindWith: %v\n", err)
+		found, isErr := errors.AsType[validator.ValidationErrors](err)
+		if isErr {
+			err := utils.ValidationError(found)
+			c.JSON(http.StatusBadRequest, dto.ResponseError{
+				Success: false,
+				Message: err,
+			})
+			return
+		}
+
+		c.JSON(http.StatusBadRequest, dto.ResponseError{
+			Success: false,
+			Message: "invalid request payload",
+		})
+		return
+	}
+
+	err := uc.us.CheckPinUS(c.Request.Context(), userID, body)
+	if err != nil {
+		if errors.Is(err, msgerr.ErrOldPin) {
+			c.JSON(http.StatusBadRequest, dto.ResponseError{
+				Success: false,
+				Message: "check pin not match",
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.ResponseSuccess{
+		Success: true,
+		Message: "check pin match",
+	})
+}
+
+// History
+//
+// @Summary      	History
+// @Description  	Get all history transaction
+// @Tags         	Transaction
+// @Accept       	json
+// @Produce      	json
+// @Param        	search  query     string  false  "search people"
+// @Param        	limit   query     int  	  false  "limit get data"
+// @Param        	page   query     int  	  page  "limit get data"
+// @Security     	Bearer
+// @Router			/user/history		[get]
+// @Success			200		{object}	dto.ResponseSuccess
+// @Failure			400		{object}	dto.ResponseError
+// @Failure			401		{object}	dto.ResponseError
+// @Failure			500		{object}	dto.ResponseError
+func (uc *UserContorller) HistoryUC(c *gin.Context) {
+	res, exist := c.Get("ID")
+	if !exist {
+		log.Printf("[UserContorller.FindPeopleUC] Error get token from redis")
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	userID, ok := res.(int64)
+	if !ok {
+		log.Printf("[UserContorller.FindPeopleUC] Error change to string")
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	var query dto.HistoryTransactionRequest
+	if err := c.ShouldBindQuery(&query); err != nil {
+		c.JSON(http.StatusBadRequest, dto.ResponseError{
+			Success: false,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	users, err := uc.us.HistoryTS(c.Request.Context(), userID, query)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, dto.ResponseError{
+			Success: false,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.ResponseSuccess{
+		Success: true,
+		Message: "success get hitory",
+		Data:    users,
 	})
 }

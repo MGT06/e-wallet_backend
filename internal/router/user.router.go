@@ -23,4 +23,7 @@ func UserRouter(router *gin.Engine, pool *pgxpool.Pool, redis *redis.Client) {
 	user.DELETE("image", middleware.AuthMiddleware(redis), uc.DeletProfileUC)
 	user.PATCH("password", middleware.AuthMiddleware(redis), uc.ChangePasswordUC)
 	user.POST("set-pin", middleware.AuthMiddleware(redis), uc.SetPinUC)
+	user.POST("favorite", middleware.AuthMiddleware(redis), uc.AddFavoriteUC)
+	user.PATCH("change-pin", middleware.AuthMiddleware(redis), uc.ChangePinUC)
+	user.POST("check-pin", middleware.AuthMiddleware(redis), uc.CheckPinUC)
 }

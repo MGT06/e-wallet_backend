@@ -36,7 +36,7 @@ type UserChangePasswordRequest struct {
 }
 
 type SetPinRequest struct {
-	Pin string `json:"pin" binding:"required,min=6,max=6"`
+	Pin string `json:"pin" binding:"required,len=6,numeric" example:"123456"`
 }
 
 type PaymentMethodResponse struct {
@@ -50,4 +50,18 @@ type PaymentMethodResponse struct {
 
 type DeletePhotoProfileResponse struct {
 	ImageURL *string `json:"image_url"`
+}
+
+type AddFavoriteRequest struct {
+	ID         int64 `json:"-"`
+	FavoriteID int64 `json:"favorite_account_id"`
+}
+
+type ChangePinRequest struct {
+	OldPin string `json:"old_pin" binding:"required,len=6,numeric" example:"123456"`
+	NewPin string `json:"new_pin" binding:"required,len=6,numeric" example:"654321"`
+}
+
+type CheckPinRequest struct {
+	OldPin string `json:"pin" binding:"required,len=6,numeric" example:"123456"`
 }
