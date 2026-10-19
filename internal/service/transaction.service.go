@@ -283,3 +283,18 @@ func (ts *TransactionService) Transfer(ctx context.Context, senderID int64, req 
 
 	return tx.Commit(ctx)
 }
+
+func (ts *TransactionService) GetReceiverTS(c context.Context, userID int64) (*dto.Recipient, error) {
+	log.Printf("GetReceiverTS.ID TARGET : %d", userID)
+
+	user, err := ts.tr.GetReceiverTR(c, ts.db, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dto.Recipient{
+		Fullname: user.Fullname,
+		ImageURL: user.ImageURL,
+		Phone:    user.Phone,
+	}, nil
+}

@@ -261,3 +261,52 @@ func (tc *TransactionContorller) TransferUC(ctx *gin.Context) {
 		Message: "Transfer Success",
 	})
 }
+
+// Get Receiver
+//
+// @Summary      	Get  receiver
+// @Description  	Get  receiver
+// @Tags         	User
+// @Produce			json
+// @Security     	Bearer
+// @Param        	user_id   query     int64  	  page  "Get  receiver"
+// @Router			/transaction		[get]
+// @Success			200		{object}	dto.ResponseSuccess
+// @Failure			400		{object}	dto.ResponseError
+// @Failure			401		{object}	dto.ResponseError
+// @Failure			500		{object}	dto.ResponseError
+func (tc *TransactionContorller) GetReceiverTC(c *gin.Context) {
+	var query dto.ReceiverRequest
+	if err := c.ShouldBindQuery(&query); err != nil {
+		c.JSON(http.StatusBadRequest, dto.ResponseError{
+			Success: false,
+			Message: "invalid query parameters",
+		})
+		return
+	}
+
+	log.Printf("GetReceiverTC.ID TARGET : %d", query.UserID)
+
+	users, err := tc.ts.GetReceiverTS(c.Request.Context(), query.UserID)
+	if err != nil {
+		if errors.Is(err, msgerr.ErrUserNotExist) {
+			c.JSON(http.StatusBadRequest, dto.ResponseError{
+				Success: false,
+				Message: err.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.ResponseSuccess{
+		Success: true,
+		Message: "success get people list",
+		Data:    users,
+	})
+}

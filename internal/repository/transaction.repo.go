@@ -11,6 +11,7 @@ import (
 	msgerr "github.com/MGT06/e-wallet_backend/internal/message"
 	"github.com/MGT06/e-wallet_backend/internal/models"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type TransactionRepo struct{}
@@ -243,4 +244,31 @@ func (tr *TransactionRepo) InsertTransaction(ctx context.Context, db DBTX, t mod
 	}
 
 	return nil
+}
+
+func (tr *TransactionRepo) GetReceiverTR(c context.Context, db *pgxpool.Pool, userID int64) (*models.Account, error) {
+	query := `
+        SELECT
+			id,
+            fullname, 
+            image_url, 
+            phone
+        FROM accounts
+        WHERE id = $1
+    `
+	log.Printf("GetReceiverTR.ID TARGET : %d", userID)
+	var user models.Account
+	err := db.QueryRow(c, query, userID).Scan(
+		&user.ID,
+		&user.Fullname,
+		&user.ImageURL,
+		&user.Phone,
+	)
+
+	if err != nil {
+		log.Printf("[TransactionRepo.GetReceiverTR] QueryRow : %s", err)
+		return nil, msgerr.ErrUserNotExist
+	}
+
+	return &user, nil
 }
