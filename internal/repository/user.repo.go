@@ -370,8 +370,6 @@ func (ur *UserRepo) HistoryUR(c context.Context, userId int64, body dto.HistoryT
 
 	finalQuery := query.String()
 
-	fmt.Println(finalQuery)
-
 	rows, err := ur.db.Query(c, finalQuery, args...)
 	if err != nil {
 		log.Printf("[UserRepo.HistoryUR] Query : %s", err.Error())

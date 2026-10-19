@@ -65,8 +65,6 @@ func (tr *TransactionRepo) FindPeopleTR(c context.Context, db DBTX, userID int64
 
 	finalQuery := query.String()
 
-	fmt.Println(finalQuery)
-
 	rows, err := db.Query(c, finalQuery, args...)
 	if err != nil {
 		log.Printf("[TransactionRepo.FindPeopleUR] Query : %s", err.Error())
