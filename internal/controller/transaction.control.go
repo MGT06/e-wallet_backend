@@ -220,6 +220,7 @@ func (tc *TransactionContorller) TransferUC(ctx *gin.Context) {
 
 	err := tc.ts.Transfer(ctx.Request.Context(), res.(int64), req)
 	if err != nil {
+		log.Println(err)
 		switch {
 		case errors.Is(err, msgerr.ErrSelfTransfer):
 			ctx.JSON(http.StatusBadRequest, dto.ResponseError{
@@ -236,7 +237,13 @@ func (tc *TransactionContorller) TransferUC(ctx *gin.Context) {
 				Success: false,
 				Message: "Insufficient balance",
 			})
+		default:
+			ctx.JSON(http.StatusInternalServerError, dto.ResponseError{
+				Success: false,
+				Message: "a system error has accurred",
+			})
 		}
+		return
 	}
 
 	ctx.JSON(http.StatusCreated, dto.ResponseSuccess{
