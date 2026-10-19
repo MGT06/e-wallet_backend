@@ -340,3 +340,11 @@ func (us *UserService) EwalletUS(c context.Context, userID int64) (*dto.EwalletR
 		Expanse: res.Expanse,
 	}, nil
 }
+
+func (us *UserService) DeleteHistoryUS(c context.Context, query dto.DeleteHistoryRequest) error {
+	err := us.ur.DeleteHistoryUR(c, query)
+	if err != nil {
+		return err
+	}
+	return nil
+}

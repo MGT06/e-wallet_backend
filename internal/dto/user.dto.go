@@ -71,3 +71,8 @@ type EwalletResponse struct {
 	Income  int64 `json:"income"`
 	Expanse int64 `json:"expense"`
 }
+
+type DeleteHistoryRequest struct {
+	UserID    int64 `form:"-"`
+	HistoryID int64 `form:"history_id"`
+}
