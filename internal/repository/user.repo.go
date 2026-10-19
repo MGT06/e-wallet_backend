@@ -264,38 +264,6 @@ func (ur *UserRepo) ToggleFavoriteUR(c context.Context, body dto.AddFavoriteRequ
 	return action, nil
 }
 
-func (ur *UserRepo) DelFavoriteUR(c context.Context, body dto.AddFavoriteRequest) error {
-	query := `
-        DELETE FROM favorites
-        WHERE account_id = $1 AND favorite_account_id = $2
-    `
-	args := []any{body.ID, body.FavoriteID}
-
-	tag, err := ur.db.Exec(c, query, args...)
-	if err != nil {
-		log.Printf("[UserRepo.AddFavoriteUR] Exec : %s", err)
-
-		if pgErr, ok := errors.AsType[*pgconn.PgError](err); ok {
-			if pgErr.Code == "23503" {
-				switch pgErr.ConstraintName {
-				case "favorites_account_id_fkey":
-					return msgerr.ErrUserNotExist
-				case "favorites_favorite_account_id_fkey":
-					return msgerr.ErrUSerFavNotFound
-				default:
-					return err
-				}
-			}
-		}
-		return err
-	}
-
-	if tag.RowsAffected() == 0 {
-		return msgerr.ErrNoRowAffected
-	}
-	return nil
-}
-
 func (ur *UserRepo) ChangePinUR(c context.Context, userId int64, pin string) error {
 	query := `
         UPDATE accounts 
