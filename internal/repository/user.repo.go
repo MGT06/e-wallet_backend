@@ -432,3 +432,33 @@ func (ur *UserRepo) EwalletUR(c context.Context, userID int64) (*models.EwalletM
 
 	return &ewallet, nil
 }
+
+func (ur *UserRepo) DeleteHistoryUR(c context.Context, q dto.DeleteHistoryRequest) error {
+	query := `
+		UPDATE transaction
+		SET 
+		    delete_at = NOW()
+		WHERE account_id = $1 AND id = $2;
+    `
+	tag, err := ur.db.Exec(c, query, q.UserID, q.HistoryID)
+	if err != nil {
+		log.Printf("[UserRepo.DeleteHistoryUR] Exec : %s", err)
+		repoErr, ok := errors.AsType[*pgconn.PgError](err)
+		if ok {
+			code, msg := repoErr.Code, repoErr.ConstraintName
+			log.Printf("code : %s\nmessage : %s", code, msg)
+			if code == "23505" && msg == "transaction_id_key" {
+				log.Printf("code : %s\nmessage : %s cek", code, msg)
+				return msgerr.ErrUserNotExist
+			}
+		}
+		return err
+	}
+
+	if tag.RowsAffected() == 0 {
+		log.Printf("[UserRepo.DeleteHistoryUR] RowsAffected : %s", err)
+		return msgerr.ErrNoRowAffected
+	}
+
+	return nil
+}

@@ -650,7 +650,7 @@ func (uc *UserContorller) CheckPinUC(c *gin.Context) {
 //
 // @Summary      	History
 // @Description  	Get all history transaction
-// @Tags         	Transaction
+// @Tags         	User
 // @Accept       	json
 // @Produce      	json
 // @Param        	search  query     string  false  "search people"
@@ -685,6 +685,7 @@ func (uc *UserContorller) HistoryUC(c *gin.Context) {
 
 	var query dto.HistoryTransactionRequest
 	if err := c.ShouldBindQuery(&query); err != nil {
+		log.Printf("[UserContorller.HistoryUC] ShouldBindQuery : %s", err)
 		c.JSON(http.StatusBadRequest, dto.ResponseError{
 			Success: false,
 			Message: err.Error(),
@@ -761,5 +762,73 @@ func (uc *UserContorller) EwalletUC(c *gin.Context) {
 		Success: true,
 		Message: "get stats dashboard success",
 		Data:    ewallet,
+	})
+}
+
+// Delete history
+//
+// @Summary      	Delete history
+// @Description  	Delete history transaction
+// @Tags         	User
+// @Produce			json
+// @Security     	Bearer
+// @Param        	history_id   query     int64  	  page  "id hitory"
+// @Router			/user/history		[delete]
+// @Success			200		{object}	dto.ResponseSuccess
+// @Failure			400		{object}	dto.ResponseError
+// @Failure			401		{object}	dto.ResponseError
+// @Failure			500		{object}	dto.ResponseError
+func (uc *UserContorller) DeleteHistoryUC(c *gin.Context) {
+	res, exist := c.Get("ID")
+	if !exist {
+		log.Printf("[UserContorller.DeleteHistoryUC] Error get token from redis")
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	userID, ok := res.(int64)
+	if !ok {
+		log.Printf("[UserContorller.DeleteHistoryUC] Error change to string")
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	var query dto.DeleteHistoryRequest
+	if err := c.ShouldBindQuery(&query); err != nil {
+		log.Printf("[UserContorller.HistoryUC] ShouldBindQuery : %s", err)
+		c.JSON(http.StatusBadRequest, dto.ResponseError{
+			Success: false,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	query.UserID = userID
+
+	err := uc.us.DeleteHistoryUS(c.Request.Context(), query)
+	if err != nil {
+		if errors.Is(err, msgerr.ErrNoRowAffected) {
+			c.JSON(http.StatusBadRequest, dto.ResponseError{
+				Success: false,
+				Message: "transaksi tidak ditemukan",
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.ResponseSuccess{
+		Success: true,
+		Message: "success delete hitory",
 	})
 }
