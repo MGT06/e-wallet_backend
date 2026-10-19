@@ -13,7 +13,7 @@ import (
 
 func TransactionRouter(router *gin.Engine, pool *pgxpool.Pool, redis *redis.Client, resty *resty.Client) {
 	tr := repository.NewTransactionRepo()
-	ts := service.NewTransactionService(tr, resty, pool)
+	ts := service.NewTransactionService(tr, resty, pool, redis)
 	tc := controller.NewTransactionContorller(ts)
 
 	transaction := router.Group("transaction")

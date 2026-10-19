@@ -227,6 +227,16 @@ func (tc *TransactionContorller) TransferUC(ctx *gin.Context) {
 				Success: false,
 				Message: "You cannot transfer to your own account",
 			})
+		case errors.Is(err, msgerr.ErrTooManyAttempts):
+			ctx.JSON(http.StatusTooManyRequests, dto.ResponseSuccess{
+				Success: true,
+				Message: err.Error(),
+			})
+		case errors.Is(err, msgerr.ErrInvalidInput):
+			ctx.JSON(http.StatusBadRequest, dto.ResponseError{
+				Success: false,
+				Message: "wrong pin",
+			})
 		case errors.Is(err, msgerr.ErrReceiverNotFound):
 			ctx.JSON(http.StatusNotFound, dto.ResponseError{
 				Success: false,

@@ -163,6 +163,19 @@ func (tr *TransactionRepo) UpdateTopupsTR(c context.Context, db DBTX, body model
 	return resp, nil
 }
 
+func (tr *TransactionRepo) GetPIN(ctx context.Context, db DBTX, accountID int64) (*string, error) {
+	var user models.Account
+	err := db.QueryRow(ctx, `SELECT pin FROM accounts WHERE id = $1`, accountID).Scan(&user.Pin)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, err
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return user.Pin, nil
+}
+
 func (tr *TransactionRepo) GetBalances(ctx context.Context, db DBTX, ids ...int64) (map[int64]int64, error) {
 	query := "SELECT id, balance FROM accounts WHERE id = ANY($1) ORDER BY id FOR UPDATE"
 	args := []any{ids}

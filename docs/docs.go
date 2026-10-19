@@ -1013,6 +1013,43 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/user/stats-dashboard": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Ewallet",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Ewallet",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseError"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1199,6 +1236,7 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "amount",
+                "pin",
                 "receiver_id"
             ],
             "properties": {
@@ -1208,6 +1246,9 @@ const docTemplate = `{
                 "notes": {
                     "type": "string",
                     "maxLength": 255
+                },
+                "pin": {
+                    "type": "string"
                 },
                 "receiver_id": {
                     "type": "integer"

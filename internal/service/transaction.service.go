@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -14,21 +15,27 @@ import (
 	"github.com/MGT06/e-wallet_backend/internal/models"
 	"github.com/MGT06/e-wallet_backend/internal/repository"
 	"github.com/MGT06/e-wallet_backend/internal/utils"
+	"github.com/MGT06/e-wallet_backend/pkg"
 	"github.com/go-resty/resty/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/go-redis/v9"
 )
 
 type TransactionService struct {
 	tr    *repository.TransactionRepo
 	resty *resty.Client
 	db    *pgxpool.Pool
+	rds   *redis.Client
+	conf  *pkg.ConfigHash
 }
 
-func NewTransactionService(tr *repository.TransactionRepo, resty *resty.Client, db *pgxpool.Pool) *TransactionService {
+func NewTransactionService(tr *repository.TransactionRepo, resty *resty.Client, db *pgxpool.Pool, rds *redis.Client) *TransactionService {
 	return &TransactionService{
 		tr:    tr,
 		resty: resty,
 		db:    db,
+		rds:   rds,
+		conf:  pkg.NewConfigHash(),
 	}
 }
 
@@ -167,6 +174,40 @@ func (ts *TransactionService) Transfer(ctx context.Context, senderID int64, req 
 		return msgerr.ErrSelfTransfer
 	}
 
+	key := fmt.Sprintf("ewallet:transfer:pin-attempt:%d", senderID)
+
+	n, err := ts.rds.Get(ctx, key).Int()
+	if err != nil && !errors.Is(err, redis.Nil) {
+		return err
+	}
+
+	if n >= 3 {
+		return msgerr.ErrTooManyAttempts
+	}
+
+	pinhash, er := ts.tr.GetPIN(ctx, ts.db, senderID)
+	if er != nil {
+		return er
+	}
+
+	if pinhash == nil {
+		return fmt.Errorf("pin has not been created")
+	}
+
+	if _, err := ts.conf.Compare(req.PIN, *pinhash); err != nil {
+		return msgerr.ErrInvalidInput
+	}
+
+	pipe := ts.rds.TxPipeline()
+	pipe.Incr(ctx, key)
+	pipe.ExpireNX(ctx, key, 15*time.Minute)
+
+	if _, err := pipe.Exec(ctx); err != nil {
+		return err
+	}
+	
+	utils.DelFromRedis(ctx, ts.rds, key)
+
 	timestamp := time.Now()
 	randstring := utils.GenerateRandomString(6)
 	refno := fmt.Sprintf("TRF-%d-%s", timestamp.Unix(), randstring)
@@ -187,7 +228,7 @@ func (ts *TransactionService) Transfer(ctx context.Context, senderID int64, req 
 		return err
 	}
 
-	senderBefore:= balances[senderID]
+	senderBefore := balances[senderID]
 
 	receiverBefore, ok := balances[req.ReceiverID]
 	if !ok {
