@@ -30,3 +30,9 @@ type FindPeopleMDL struct {
 	IsFavorit bool    `db:"is_favorite"`
 	TotalData int64   `db:"total_data"`
 }
+
+type EwalletMDL struct {
+	Balance int64 `db:"balance"`
+	Income  int64 `db:"income"`
+	Expanse int64 `db:"expense"`
+}

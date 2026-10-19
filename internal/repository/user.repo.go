@@ -407,3 +407,30 @@ func (ur *UserRepo) HistoryUR(c context.Context, userId int64, body dto.HistoryT
 
 	return &historys, nil
 }
+
+func (ur *UserRepo) EwalletUR(c context.Context, userID int64) (*models.EwalletMDL, error) {
+	query := `
+		SELECT 
+		    a.balance AS balance,
+		    COALESCE(SUM(CASE WHEN t.type = 'topup' THEN t.amount ELSE 0 END), 0) AS income,
+		    COALESCE(SUM(CASE WHEN t.type = 'transfer' THEN ABS(t.amount) ELSE 0 END), 0) AS expense
+		FROM accounts a
+		LEFT JOIN transaction t ON a.id = t.account_id AND t.delete_at IS NULL
+		WHERE a.id = $1
+		GROUP BY a.id, a.fullname, a.balance
+    `
+	var ewallet models.EwalletMDL
+
+	err := ur.db.QueryRow(c, query, userID).Scan(
+		&ewallet.Balance,
+		&ewallet.Income,
+		&ewallet.Expanse,
+	)
+
+	if err != nil {
+		log.Printf("[UserRepo.GetUserHeaderUR] QueryRow : %s", err)
+		return nil, msgerr.ErrUserNotExist
+	}
+
+	return &ewallet, nil
+}
