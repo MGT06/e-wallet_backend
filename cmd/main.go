@@ -57,6 +57,7 @@ func main() {
 	// gin.SetMode(gin.ReleaseMode)
 	server := gin.Default()
 
+	server.SetTrustedProxies([]string{"172.19.0.0/16"})	
 	router.Router(server, pool, redis, client)
 
 	server.Run(fmt.Sprintf("%s:%s", conf.HOST, conf.PORT))
