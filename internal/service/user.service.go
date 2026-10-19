@@ -328,3 +328,15 @@ func (us *UserService) HistoryTS(c context.Context, userID int64, query dto.Hist
 		NextPage:  nextPage,
 	}, nil
 }
+
+func (us *UserService) EwalletUS(c context.Context, userID int64) (*dto.EwalletResponse, error) {
+	res, err := us.ur.EwalletUR(c, userID)
+	if err != nil {
+		return nil, err
+	}
+	return &dto.EwalletResponse{
+		Balance: res.Balance,
+		Income:  res.Income,
+		Expanse: res.Expanse,
+	}, nil
+}

@@ -707,3 +707,59 @@ func (uc *UserContorller) HistoryUC(c *gin.Context) {
 		Data:    users,
 	})
 }
+
+// Ewallet
+//
+// @Summary			Ewallet
+// @Description		Ewallet
+// @Tags			User
+// @Produce			json
+// @Security		Bearer
+// @Router			/user/stats-dashboard	[get]
+// @Success			200		{object}	dto.ResponseSuccess
+// @Failure			400		{object}	dto.ResponseError
+// @Failure			500		{object}	dto.ResponseError
+func (uc *UserContorller) EwalletUC(c *gin.Context) {
+	res, exist := c.Get("ID")
+	if !exist {
+		log.Printf("[UserContorller.GetUserProfileUC] Error get token from redis")
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	userID, ok := res.(int64)
+	if !ok {
+		log.Printf("[UserContorller.EwalletUC] Error change to string")
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	ewallet, err := uc.us.EwalletUS(c.Request.Context(), userID)
+	if err != nil {
+		if errors.Is(err, msgerr.ErrUserNotExist) {
+			c.JSON(http.StatusBadRequest, dto.ResponseError{
+				Success: false,
+				Message: err.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.ResponseSuccess{
+		Success: true,
+		Message: "get stats dashboard success",
+		Data:    ewallet,
+	})
+}

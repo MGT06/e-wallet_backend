@@ -65,3 +65,9 @@ type ChangePinRequest struct {
 type CheckPinRequest struct {
 	OldPin string `json:"pin" binding:"required,len=6,numeric" example:"123456"`
 }
+
+type EwalletResponse struct {
+	Balance int64 `json:"balance"`
+	Income  int64 `json:"income"`
+	Expanse int64 `json:"expense"`
+}
