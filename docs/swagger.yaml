@@ -130,10 +130,13 @@ definitions:
       notes:
         maxLength: 255
         type: string
+      pin:
+        type: string
       receiver_id:
         type: integer
     required:
     - amount
+    - pin
     - receiver_id
     type: object
   dto.UserChangePasswordRequest:
@@ -794,6 +797,29 @@ paths:
       security:
       - Bearer: []
       summary: Set Pin User
+      tags:
+      - User
+  /user/stats-dashboard:
+    get:
+      description: Ewallet
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ResponseSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ResponseError'
+      security:
+      - Bearer: []
+      summary: Ewallet
       tags:
       - User
 securityDefinitions:

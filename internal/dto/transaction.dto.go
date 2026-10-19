@@ -72,6 +72,7 @@ type TransferRequest struct {
 	ReceiverID int64  `json:"receiver_id" binding:"required"`
 	Amount     int64  `json:"amount" binding:"required"`
 	Notes      string `json:"notes" binding:"max=255"`
+	PIN        string `json:"pin" binding:"required,len=6"`
 }
 
 type TransferResponse struct {
