@@ -230,8 +230,9 @@ func (tr *TransactionRepo) AddBalance(ctx context.Context, db DBTX, userId, amou
 }
 
 func (tr *TransactionRepo) InsertTransaction(ctx context.Context, db DBTX, t models.Transaction) error {
-	query := "INSERT INTO transaction (account_id, type, amount, balance_before, balance_after, transfer_id) VALUES ($1, $2, $3, $4, $5, $6)"
-	args := []any{t.AccountID, t.Type, t.Amount, t.BalanceBefore, t.BalanceAfter, t.TopupID}
+	query := "INSERT INTO transaction (account_id, type, amount, balance_before, balance_after, topup_id, transfer_id) VALUES ($1, $2, $3, $4, $5, $6, $7)"
+	args := []any{t.AccountID, t.Type, t.Amount, t.BalanceBefore, t.BalanceAfter, t.TopupID, t.TransferID}
+
 
 	tag, err := db.Exec(ctx, query, args...)
 
