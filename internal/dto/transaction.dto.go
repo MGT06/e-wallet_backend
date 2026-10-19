@@ -84,3 +84,7 @@ type TransferResponse struct {
 	Sender      Recipient `json:"sender"`
 	Receiver    Recipient `json:"receiver"`
 }
+
+type ReceiverRequest struct {
+	UserID int64 `form:"user_id"`
+}

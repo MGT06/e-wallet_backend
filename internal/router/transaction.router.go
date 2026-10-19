@@ -22,4 +22,5 @@ func TransactionRouter(router *gin.Engine, pool *pgxpool.Pool, redis *redis.Clie
 	transaction.GET("topup-methode", middleware.AuthMiddleware(redis), tc.PaymentMethodeTC)
 	transaction.POST("topup", middleware.AuthMiddleware(redis), tc.TopupsUC)
 	transaction.POST("transfer", middleware.AuthMiddleware(redis), tc.TransferUC)
+	transaction.GET("", middleware.AuthMiddleware(redis), tc.GetReceiverTC)
 }
