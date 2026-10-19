@@ -73,6 +73,20 @@ type EwalletResponse struct {
 }
 
 type DeleteHistoryRequest struct {
-	UserID    int64 `form:"-"`
-	HistoryID int64 `form:"history_id"`
+	UserID    int64 `json:"-"`
+	HistoryID int64 `json:"history_id"`
+}
+
+type TransactionSummaryRequest struct {
+	Type string `json:"type"`
+	Day  int64  `json:"filter"`
+}
+
+type TransactionSummaryResponse struct {
+	Type   string `json:"type"`
+	Amount int64  `json:"amount"`
+	Date   string `json:"date"`
+	Day    string `json:"day"`
+	Month  string `json:"month"`
+	Week   int    `json:"week"`
 }

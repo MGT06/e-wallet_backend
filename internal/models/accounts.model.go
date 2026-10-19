@@ -36,3 +36,7 @@ type EwalletMDL struct {
 	Income  int64 `db:"income"`
 	Expanse int64 `db:"expense"`
 }
+
+// type ChartMDL struct {
+
+// }

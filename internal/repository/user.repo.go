@@ -295,10 +295,13 @@ func (ur *UserRepo) HistoryUR(c context.Context, userId int64, body dto.HistoryT
 			p.image_url AS image_url,
 			t.amount,
 			COUNT(tr.sender_id) OVER() AS total,
-			CASE 
-				WHEN tr.sender_id = $1 THEN 'sender'
-				WHEN tr.receiver_id = $1 THEN 'receiver'
-			END AS type
+			COALESCE(
+                CASE 
+                    WHEN tr.sender_id = $1 THEN 'sender'
+                    WHEN tr.receiver_id = $1 THEN 'receiver'
+                END, 
+                'null'
+            ) AS type
 		FROM transaction t
 		JOIN transfers tr ON t.transfer_id = tr.id
 		JOIN accounts p ON p.id = CASE 
@@ -307,7 +310,6 @@ func (ur *UserRepo) HistoryUR(c context.Context, userId int64, body dto.HistoryT
 			ELSE tr.sender_id 
 		END
 		WHERE t.account_id = $%d
-		  AND t.type = 'transfer'
 		  AND t.delete_at IS NULL
 	`, 1, 1)
 	args := []any{userId}
@@ -408,6 +410,7 @@ func (ur *UserRepo) DeleteHistoryUR(c context.Context, q dto.DeleteHistoryReques
 		    delete_at = NOW()
 		WHERE account_id = $1 AND id = $2;
     `
+	fmt.Printf("USER : %d\n HISTORY : %d ", q.UserID, q.HistoryID)
 	tag, err := ur.db.Exec(c, query, q.UserID, q.HistoryID)
 	if err != nil {
 		log.Printf("[UserRepo.DeleteHistoryUR] Exec : %s", err)
@@ -429,4 +432,91 @@ func (ur *UserRepo) DeleteHistoryUR(c context.Context, q dto.DeleteHistoryReques
 	}
 
 	return nil
+}
+
+func (ur *UserRepo) GetTransactionSummaryUR(ctx context.Context, accountID int64, transactionType string) ([]dto.TransactionSummaryResponse, error) {
+	if transactionType != "transfer" && transactionType != "topup" {
+		return nil, errors.New("invalid transaction type")
+	}
+
+	query := `
+WITH weeks AS (
+    SELECT generate_series(
+        DATE_TRUNC('week', NOW() - INTERVAL '30 days'),
+        DATE_TRUNC('week', NOW()),
+        INTERVAL '1 week'
+    ) AS week_start
+)
+SELECT
+    $2::text AS type,
+    COALESCE(SUM(ABS(t.amount)), 0)::BIGINT AS amount,
+    TO_CHAR(w.week_start, 'YYYY-MM-DD') AS date,
+    CASE EXTRACT(ISODOW FROM w.week_start)::INT
+        WHEN 1 THEN 'Senin'
+        WHEN 2 THEN 'Selasa'
+        WHEN 3 THEN 'Rabu'
+        WHEN 4 THEN 'Kamis'
+        WHEN 5 THEN 'Jumat'
+        WHEN 6 THEN 'Sabtu'
+        WHEN 7 THEN 'Minggu'
+    END AS day,
+    CASE EXTRACT(MONTH FROM w.week_start)::INT
+        WHEN 1 THEN 'Januari'
+        WHEN 2 THEN 'Februari'
+        WHEN 3 THEN 'Maret'
+        WHEN 4 THEN 'April'
+        WHEN 5 THEN 'Mei'
+        WHEN 6 THEN 'Juni'
+        WHEN 7 THEN 'Juli'
+        WHEN 8 THEN 'Agustus'
+        WHEN 9 THEN 'September'
+        WHEN 10 THEN 'Oktober'
+        WHEN 11 THEN 'November'
+        WHEN 12 THEN 'Desember'
+    END AS month,
+    (
+        EXTRACT(DAY FROM w.week_start)::INT - 1
+    ) / 7 + 1 AS week
+FROM weeks w
+LEFT JOIN transaction t
+    ON DATE_TRUNC('week', t.created_at) = w.week_start
+    AND t.account_id = $1
+    AND t.type = $2::transaction_type
+    AND t.delete_at IS NULL
+    AND t.created_at >= NOW() - INTERVAL '30 days'
+    AND t.created_at <= NOW()
+GROUP BY w.week_start
+ORDER BY w.week_start ASC;
+    `
+
+	rows, err := ur.db.Query(ctx, query, accountID, transactionType)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	result := make([]dto.TransactionSummaryResponse, 0)
+
+	for rows.Next() {
+		var item dto.TransactionSummaryResponse
+
+		if err := rows.Scan(
+			&item.Type,
+			&item.Amount,
+			&item.Date,
+			&item.Day,
+			&item.Month,
+			&item.Week,
+		); err != nil {
+			return nil, err
+		}
+
+		result = append(result, item)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
