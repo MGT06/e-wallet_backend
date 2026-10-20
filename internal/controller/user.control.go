@@ -771,6 +771,7 @@ func (uc *UserContorller) EwalletUC(c *gin.Context) {
 // @Description  	Delete history transaction
 // @Tags         	User
 // @Produce			json
+// @Produce			json
 // @Security     	Bearer
 // @Param        	history_id   query     int64  	  page  "id hitory"
 // @Router			/user/history		[delete]
@@ -800,7 +801,7 @@ func (uc *UserContorller) DeleteHistoryUC(c *gin.Context) {
 	}
 
 	var query dto.DeleteHistoryRequest
-	if err := c.ShouldBindQuery(&query); err != nil {
+	if err := c.ShouldBindWith(&query, binding.JSON); err != nil {
 		log.Printf("[UserContorller.HistoryUC] ShouldBindQuery : %s", err)
 		c.JSON(http.StatusBadRequest, dto.ResponseError{
 			Success: false,
@@ -808,6 +809,8 @@ func (uc *UserContorller) DeleteHistoryUC(c *gin.Context) {
 		})
 		return
 	}
+
+	fmt.Printf("BODY : %v", query)
 
 	query.UserID = userID
 
@@ -830,5 +833,73 @@ func (uc *UserContorller) DeleteHistoryUC(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.ResponseSuccess{
 		Success: true,
 		Message: "success delete hitory",
+	})
+}
+
+// Get Transaction Summary
+//
+// @Summary         Get Transaction Summary
+// @Description     Get Transaction Summary
+// @Tags            User
+// @Accept          json
+// @Produce         json
+// @Security        Bearer
+// @Router          /user/summary [post]
+// @Param           body    body        dto.TransactionSummaryRequest true "Body data"
+// @Success         200     {object}    dto.ResponseSuccess
+// @Failure         400     {object}    dto.ResponseError
+// @Failure         500     {object}    dto.ResponseError
+func (uc *UserContorller) GetTransactionSummaryUC(c *gin.Context) {
+	res, exist := c.Get("ID")
+	if !exist {
+		log.Printf("[UserContorller.GetUserHeaderUC] Error get token from redis")
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	userID, ok := res.(int64)
+	if !ok {
+		log.Printf("[UserContorller.GetUserHeaderUC] Error change to string")
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	var body dto.TransactionSummaryRequest
+	if err := c.ShouldBindWith(&body, binding.JSON); err != nil {
+		log.Printf("[AuthContorller.LoginAC] Bind error: %v\n", err.Error())
+		c.JSON(http.StatusBadRequest, dto.ResponseError{
+			Success: false,
+			Message: msgerr.ErrEmailNotExist.Error(),
+		})
+		return
+	}
+
+	user, err := uc.us.GetTransactionSummaryUS(c.Request.Context(), userID, body.Type)
+	if err != nil {
+		if errors.Is(err, msgerr.ErrUserNotExist) {
+			c.JSON(http.StatusBadRequest, dto.ResponseError{
+				Success: false,
+				Message: err.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Success: false,
+			Message: "a system error has accurred",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.ResponseSuccess{
+		Success: true,
+		Message: "get user success",
+		Data:    user,
 	})
 }

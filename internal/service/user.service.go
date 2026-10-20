@@ -306,8 +306,8 @@ func (us *UserService) HistoryTS(c context.Context, userID int64, query dto.Hist
 
 	prev.Add("limit", strconv.Itoa(query.Limit))
 	next.Add("limit", strconv.Itoa(query.Limit))
-	prev.Add("offset", strconv.Itoa(page-1))
-	next.Add("offset", strconv.Itoa(page+1))
+	prev.Add("page", strconv.Itoa(page-1))
+	next.Add("page", strconv.Itoa(page+1))
 
 	prevPage := fmt.Sprintf("%s?%s", pathUrl, prev.Encode())
 	nextPage := fmt.Sprintf("%s?%s", pathUrl, next.Encode())
@@ -347,4 +347,12 @@ func (us *UserService) DeleteHistoryUS(c context.Context, query dto.DeleteHistor
 		return err
 	}
 	return nil
+}
+
+func (us *UserService) GetTransactionSummaryUS(ctx context.Context, accountID int64, transactionType string) (*[]dto.TransactionSummaryResponse, error) {
+	res, err := us.ur.GetTransactionSummaryUR(ctx, accountID, transactionType)
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
 }

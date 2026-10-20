@@ -29,4 +29,5 @@ func UserRouter(router *gin.Engine, pool *pgxpool.Pool, redis *redis.Client) {
 	user.GET("history", middleware.AuthMiddleware(redis), uc.HistoryUC)
 	user.DELETE("history", middleware.AuthMiddleware(redis), uc.DeleteHistoryUC)
 	user.GET("stats-dashboard", middleware.AuthMiddleware(redis), uc.EwalletUC)
+	user.POST("summary", middleware.AuthMiddleware(redis), uc.GetTransactionSummaryUC)
 }
