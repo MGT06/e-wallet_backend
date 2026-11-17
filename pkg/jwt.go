@@ -24,9 +24,9 @@ func NewJWTClaims(user_id int64, expired int) *JWTClaims {
 }
 
 func (j *JWTClaims) GeneretToken() (string, error) {
-	jwtKey := os.Getenv("JWT_SECREET_KEY")
+	jwtKey := os.Getenv("JWT_SECRET_KEY")
 	if jwtKey == "" {
-		log.Printf("[PkgJwt.GeneretToken] Getenv JWT_SECREET_KEY : %v", msgerr.ErrMissingKey)
+		log.Printf("[PkgJwt.GeneretToken] Getenv JWT_SECRET_KEY : %v", msgerr.ErrMissingKey)
 		return "", msgerr.ErrMissingKey
 	}
 
@@ -35,9 +35,9 @@ func (j *JWTClaims) GeneretToken() (string, error) {
 }
 
 func (j *JWTClaims) DecodeToken(tokenString string) error {
-	jwtKey := os.Getenv("JWT_SECREET_KEY")
+	jwtKey := os.Getenv("JWT_SECRET_KEY")
 	if jwtKey == "" {
-		log.Printf("[PkgJwt.DecodeToken] Getenv JWT_SECREET_KEY : %v", msgerr.ErrMissingKey)
+		log.Printf("[PkgJwt.DecodeToken] Getenv JWT_SECRET_KEY : %v", msgerr.ErrMissingKey)
 		return msgerr.ErrMissingKey
 	}
 
