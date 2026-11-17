@@ -208,7 +208,7 @@ go run ./cmd/main.go
 | `HOST_SWAGG`, `PORT_SWAGG` | Host and port shown in the Swagger UI |
 | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | PostgreSQL credentials and database name |
 | `POSTGRES_HOST`, `POSTGRES_PORT` | PostgreSQL address |
-| `JWT_SECREET_KEY` | Secret used to sign JWTs (the spelling matches the code) |
+| `JWT_SECRET_KEY` | Secret used to sign JWTs (the spelling matches the code) |
 | `JWT_ISSUER` | JWT issuer claim |
 | `REDIS_USER`, `REDIS_PASSWORD` | Redis credentials |
 | `REDIS_HOST`, `REDIS_PORT` | Redis address |
