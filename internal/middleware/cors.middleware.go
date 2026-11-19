@@ -7,7 +7,7 @@ import (
 )
 
 func Cors(c *gin.Context) {
-	allowed := []string{"http://localhost:5173", "http://192.168.1.10:8500", "http://localhost:5174"}
+	allowed := []string{"http://localhost:5173", "https://ewallet-koda.vercel.app"}
 	for _, o := range allowed {
 		if c.GetHeader("Origin") == o {
 			c.Header("Access-Control-Allow-Origin", o)
